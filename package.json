@@ -1,0 +1,30 @@
+{
+  "name": "queue-request",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+		"commit": "git-cz ",
+    "test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"files": [
+    "index.js"
+  ],
+  "keywords": [
+		"request",
+		"request-queue",
+		"promise",
+		"promise-queue"
+	],
+	"author": "Jacano",
+	"license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Jcanno/queue-request/issues"
+  },
+  "homepage": "https://github.com/Jcanno/queue-request#readme",
+  "devDependencies": {
+    "commitizen": "^4.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-scales": "^0.2.0"
+  }
+}
