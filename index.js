@@ -15,24 +15,26 @@ class Queue {
 		this._state = STOP;
 	}
 
-	Add(list) {
-		if(Array.isArray(list)) {
-			this._queue.push(...list);
-			this._waiting.push(...list);
-			console.log(this._waiting);
-			
+	Add(task) {
+		if(Array.isArray(task)) {
+			this._queue.push(...task);
+			this._waiting.push(...task);
 		}else {
-			this._queue.push(list);
-			this._waiting.push(list);
+			this._queue.push(task);
+			this._waiting.push(task);
 		}
 
 		this._state !== RUNNING && this.autoStart && this.Run();
 	}
 
 	Run() {
-		if(this._waiting.length) {
-			this._running.push(...this._waiting.splice(0, this.max));
+		const waits = this._waiting.length;
+
+		if(waits) {
+			const tasks = this.max < waits ? this.max : waits;
+
 			this._state = RUNNING;
+			this._running.push(...this._waiting.splice(0, tasks));
 			this.excute();
 		}else {
 			this._state = STOP;
@@ -40,18 +42,20 @@ class Queue {
 	}
 
 	excute() {
-		let arr = [];
+		let tasks = [];
 
 		for(let fn of this._running) {
-			arr.push(fn());
+			tasks.push(fn());
 		}
 
-		let res = Promise.all(arr);
-
-		res.then(val => {
+		Promise.all(tasks).then(val => {
 			console.log(val);
+			this._finished.push(...this._running.splice(0, tasks.length));
+
 			setTimeout(() => {
-				this.Run();
+				if(this._state !== PAUSE || this._state !== STOP) {
+					this.Run();
+				}
 			}, this.interval);
 		});
 	}
@@ -61,7 +65,7 @@ class Queue {
 // let queue = new Queue({
 // 	max: 2,
 // 	autoStart: true,
-// 	interval: 5 * 1000
+// 	interval: 1 * 1000
 // });
 
 // queue.Add([
@@ -70,7 +74,8 @@ class Queue {
 // 	() => Promise.resolve(3),
 // 	() => Promise.resolve(4),
 // 	() => Promise.resolve(5),
-// 	() => Promise.resolve(6)
+// 	() => Promise.resolve(6),
+// 	() => Promise.resolve(7)
 // ]);
 
 export default Queue;
