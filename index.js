@@ -5,14 +5,14 @@ const PAUSE = 3;
 class Queue {
 
 	constructor(options) {
-		this.interval = options.interval;
-		this.max = options.max;
-		this.autoStart = options.autoStart;
+		this.interval = options.interval || 0;
+		this.max = options.max || 1;
 		this._queue = [];
 		this._waiting = [];
 		this._running = [];
 		this._finished = [];
-		this._state = STOP;
+		this.promise = null;
+		// this._state = STOP;
 	}
 
 	Add(task) {
@@ -24,21 +24,28 @@ class Queue {
 			this._waiting.push(task);
 		}
 
-		this._state !== RUNNING && this.autoStart && this.Run();
+		return this;
 	}
 
 	Run() {
-		const waits = this._waiting.length;
-
-		if(waits) {
-			const tasks = this.max < waits ? this.max : waits;
-
-			this._state = RUNNING;
-			this._running.push(...this._waiting.splice(0, tasks));
-			this.excute();
+		if(this.promise === null) {
+			this.promise = new Promise((resolve, reject) => {
+				this.resolve = resolve;
+				this.reject = reject;
+				this.handleQueue();
+			});
 		}else {
-			this._state = STOP;
+			this.handleQueue();
 		}
+	}
+
+	handleQueue() {
+		const waits = this._waiting.length;
+		const tasks = this.max <= waits ? this.max : waits;
+
+		// this.setState(RUNNING);
+		this._running.push(...this._waiting.splice(0, tasks));
+		this.excute();
 	}
 
 	excute() {
@@ -50,23 +57,57 @@ class Queue {
 
 		Promise.all(tasks).then(val => {
 			console.log(val);
-			this._finished.push(...this._running.splice(0, tasks.length));
+			this._finished.push(...val);
+			this._running.splice(0, tasks.length);
+			// this._finished.push(...this._running.splice(0, tasks.length));
 
-			setTimeout(() => {
-				if(this._state !== PAUSE || this._state !== STOP) {
+			if(this._waiting.length) {
+				setTimeout(() => {
+					// if(!this._waiting.length) {
+					// 	this.setState(STOP);
+					// }
+					// if(this._state !== PAUSE || this._state !== STOP) {
+					// 	this.Run();
+					// }
 					this.Run();
-				}
-			}, this.interval);
+				}, this.interval);
+			}else {
+				this.resolve(this._finished);
+			}
+			
 		});
+	}
+
+	// setState(state) {
+	// 	this._state = state;
+	// }
+
+	Result() {
+		return this.promise;
 	}
 }
 
 // test
 // let queue = new Queue({
-// 	max: 2,
-// 	autoStart: true,
+// 	max: 1,
+// 	// autoStart: true,
 // 	interval: 1 * 1000
 // });
+
+// queue.Add(() => Promise.resolve(1)).Add(() => Promise.resolve(1));
+// // queue.Add(() => setTimeout(() => {
+	
+// // }, 1000);)
+// queue.Run();
+
+// queue.Result().then(res => {
+// 	console.log(res);
+	
+// });
+// queue.Add(() => Promise.resolve(2));
+// setTimeout(() => {
+// 	console.log(queue._finished);
+// }, 3000);
 
 // queue.Add([
 // 	() => Promise.resolve(1),
