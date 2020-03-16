@@ -2,6 +2,7 @@ const STOP = 'stop';
 const RUNNING = 'running';
 const PAUSE = 'pause';
 const RERUNNING = 'rerunning';
+const noop = () => {};
 
 class Queue {
 
@@ -13,7 +14,7 @@ class Queue {
 	init() {
 		this.interval = this.options.interval || 0;
 		this.max = this.options.max || 1;
-		this.cb = this.options.cb;
+		this.cb = this.options.cb || noop;
 		this._queue = [];
 		this._waiting = [];
 		this._running = [];
