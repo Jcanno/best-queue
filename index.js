@@ -36,7 +36,7 @@ class Queue {
 	}
 
 	Run() {
-		if(this._promise === null || this._state === RERUNNING) {
+		if(this._promise === null) {
 			this._promise = new Promise((resolve, reject) => {
 				this.resolve = resolve;
 				this.reject = reject;
@@ -68,10 +68,9 @@ class Queue {
 		}
 
 		Promise.all(tasks).then(val => {
-			console.log(val);
 			this._finished.push(...val);
 			this._running.splice(0, tasks.length);
-			typeof this.cb === 'function' && this.cb(val);
+			typeof this.cb === 'function' && this.cb(val, this);
 			if(this._state === PAUSE || this._state === STOP) {
 				this.resolve(this._finished);
 				return;
@@ -97,8 +96,14 @@ class Queue {
 	}
 
 	Continue() {
-		this.setState(RERUNNING);
-		this.Run();
+		if(this._state === PAUSE) {
+			this.setState(RERUNNING);
+			this.Run();
+			this._promise = new Promise((resolve, reject) => {
+				this.resolve = resolve;
+				this.reject = reject;
+			});
+		}
 	}
 
 	setState(state) {
@@ -106,42 +111,12 @@ class Queue {
 	}
 
 	Result() {
-		return this._promise;
+		if(this._promise === null) {
+			return Promise.resolve([]);
+		}else {
+			return this._promise;
+		}
 	}
-
-	// Clear(options) {
-	// 	this.init(options);
-	// }
 }
 
-// test
-// let queue = new Queue({
-// 	max: 1,
-// 	interval: 1 * 1000,
-// 	cb: val => {
-// 		if((val[0] === 1)) {
-// 			console.log('it is 1');
-			
-// 		}
-// 	}
-// });
-
-// queue.Add(() => new Promise(r => {
-// 	setTimeout(() => {
-// 		r(1);
-// 	}, 1000);
-// }))
-// 	.Add(() => Promise.resolve(2));
-// // queue.Add(() => setTimeout(() => {
-	
-// // }, 1000);)
-// queue.Run();
-
-// queue.Result().then(res => {
-// 	console.log('====================================');
-// 	console.log(res);
-// 	console.log('====================================');
-// });
-
-// queue.Pause();
 export default Queue;

@@ -11,7 +11,10 @@ module.exports = {
   extends: [
     "eslint:recommended",
     "scales"
-  ],
+	],
+	rules: {
+		"no-empty-function": 0
+	},
   parserOptions: {
     // 支持es语法
     ecmaVersion: 6,
