@@ -1,14 +1,32 @@
 # **Queue-Request**
 
-### **APIs**
+## **Api**
 
+```js
+// genenral func
+function generatorPromiseFunc(v) {
+	return function() {
+		return Promise.resolve(v);
+	};
+}
+
+function generatorDelayPromiseFunc(v) {
+	return function() {
+		return new Promise(r => {
+			setTimeout(() => {
+				r(v);
+			}, 1000);
+		});
+	};
+}
+```
 - options:
 
 	- **despcrition**:  the property to initialize `Queue`
 
 	- **type**: `Object`
 
-	- **default**: `{}`
+	- **default**: `{max: 1, interval: 0, cb: () => {}}`
 
 	- **usage**:
 
@@ -16,7 +34,7 @@
 	let options = {
 		max: 5,
 		interval: 1 * 1000,
-		cb: val => {
+		cb: (val, queue) => {
 			if(val[0] === 1) {
 				queue.Pause()
 			}
@@ -43,7 +61,7 @@
 
 - options.cb:
 
-	- **description**:  the callback when a task finished, it receives one Array what is the result of this task. You can `Pause`、`Add` the queue, of cource, you can do something else like check the result and filter it
+	- **description**:  the callback when a task finished, it receives one Array what is the result of this task and an instance `Queue`. You can `Pause`、`Add` the queue, of cource, you can do something else like check the result
 
 	- **type**: `Function`
 
@@ -61,7 +79,7 @@
 	let options = {
 		max: 5,
 		interval: 1 * 1000,
-		cb: val => {
+		cb: (val, queue) => {
 			if(val[0] === 1) {
 				queue.Pause()
 			}
@@ -70,15 +88,15 @@
 	let queue = new Queue(options)
 
 	// you can transmit Function
-	queue.Add(() => Promise.resolve(1))
+	queue.Add(generatorPromiseFunc(1))
 	// you can transmit Array of Function
 	queue.Add([
-		() => Promise.resolve(2),
-		() => Promise.resolve(3),
+		generatorPromiseFunc(2),
+		generatorPromiseFunc(3),
 	])
 	// you can also chain call method Add
-	queue.Add(() => Promise.resolve(4))
-		 .Add(() => Promise.resolve(5))
+	queue.Add(generatorPromiseFunc(4))
+		 .Add(generatorPromiseFunc(5))
 	```
 
 - Run() 
@@ -93,7 +111,7 @@
 	let options = {
 		max: 5,
 		interval: 1 * 1000,
-		cb: val => {
+		cb: (val, queue) => {
 			if(val[0] === 1) {
 				queue.Pause()
 			}
@@ -101,7 +119,7 @@
 	}
 	let queue = new Queue(options)
 
-	queue.Add(() => Promise.resolve(1))
+	queue.Add(generatorPromiseFunc(1))
 	queue.Run()
 	```
 
@@ -117,7 +135,7 @@
 	let options = {
 		max: 5,
 		interval: 1 * 1000,
-		cb: val => {
+		cb: (val, queue) => {
 			if(val[0] === 1) {
 				queue.Pause()
 			}
@@ -126,7 +144,7 @@
 	let queue = new Queue(options)
 
 	// you can transmit Function
-	queue.Add(() => Promise.resolve(1))
+	queue.Add(generatorPromiseFunc(1))
 	queue.Run()
 	queue.Result().then(res => {
 		console.log(res)    // [1]
@@ -145,7 +163,7 @@
 	let options = {
 		max: 1,
 		interval: 1 * 1000,
-		cb: val => {
+		cb: (val, queue) => {
 			if(val[0] === 1) {
 				// the queue will be paused
 				queue.Pause()
@@ -154,12 +172,8 @@
 	}
 	let queue = new Queue(options)
 
-	queue.Add(() => Promise.resolve(1))
-		 .Add(() => new Promise(r => {
-			setTimeout(() => {
-				r(2);
-			}, 1000);
-		}))
+	queue.Add(generatorPromiseFunc(1))
+		 .Add(generatorDelayPromiseFunc(2))
 	queue.Run()
 	queue.Result().then(res => {
 		console.log(res)    // [1]
@@ -178,7 +192,7 @@
 	let options = {
 		max: 1,
 		interval: 1 * 1000,
-		cb: val => {
+		cb: (val, queue) => {
 			if(val[0] === 1) {
 				// the queue will be paused
 				queue.Pause()
@@ -187,12 +201,8 @@
 	}
 	let queue = new Queue(options)
 
-	queue.Add(() => Promise.resolve(1))
-		 .Add(() => new Promise(r => {
-			setTimeout(() => {
-				r(2);
-			}, 1000);
-		}))
+	queue.Add(generatorPromiseFunc(1))
+		 .Add(generatorDelayPromiseFunc(2))
 	queue.Run()
 	queue.Result().then(res => {
 		console.log(res)    // [1]
@@ -205,6 +215,8 @@
 
 - Stop()
 
-	- **description**:  `Stop` will stop and reinit the queue, the result of finished task will be clear too.
+	- **description**:  `Stop` will stop and reinit the queue, the result of finished task will be cleared too.
 
 	- **type**: `Function`
+
+

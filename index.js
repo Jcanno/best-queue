@@ -1,7 +1,8 @@
 const STOP = 'stop';
 const RUNNING = 'running';
 const PAUSE = 'pause';
-const RERUNNING = 'rerunning';
+const INIT = 'init';
+const FINISH = 'finish';
 const noop = () => {};
 
 class Queue {
@@ -20,7 +21,7 @@ class Queue {
 		this._running = [];
 		this._finished = [];
 		this._promise = null;
-		this._state = STOP;
+		this.setState(INIT);
 	}
 
 	Add(task) {
@@ -36,14 +37,12 @@ class Queue {
 	}
 
 	Run() {
-		if(this._promise === null) {
+		if(this._state !== RUNNING && (this._promise === null || this._state === FINISH)) {
 			this._promise = new Promise((resolve, reject) => {
 				this.resolve = resolve;
 				this.reject = reject;
 				this.handleQueue();
 			});
-		}else {
-			this.handleQueue();
 		}
 	}
 
@@ -60,29 +59,25 @@ class Queue {
 		let tasks = [];
 
 		for(let fn of this._running) {
-			if(typeof fn === 'function') {
-				tasks.push(fn());
-			}else {
-				tasks.push(Promise.resolve(fn));
-			}
+			typeof fn === 'function' ? tasks.push(fn()) : tasks.push(Promise.resolve(fn));
 		}
 
 		Promise.all(tasks).then(val => {
 			this._finished.push(...val);
 			this._running.splice(0, tasks.length);
 			typeof this.cb === 'function' && this.cb(val, this);
-			if(this._state === PAUSE || this._state === STOP) {
+			if(this._state === PAUSE) {
 				this.resolve(this._finished);
 				return;
 			}
 			if(this._waiting.length) {
 				setTimeout(() => {
-					this._state !== PAUSE && this.Run();
+					this.handleQueue();
 				}, this.interval);
 			}else {
+				this.setState(FINISH);
 				this.resolve(this._finished);
 			}
-			
 		});
 	}
 
@@ -92,17 +87,18 @@ class Queue {
 	}
 
 	Pause() {
-		this.setState(PAUSE);
+		if(this._state === RUNNING) {
+			this.setState(PAUSE);
+		}
 	}
 
 	Continue() {
 		if(this._state === PAUSE) {
-			this.setState(RERUNNING);
-			this.Run();
 			this._promise = new Promise((resolve, reject) => {
 				this.resolve = resolve;
 				this.reject = reject;
 			});
+			this.handleQueue();
 		}
 	}
 
