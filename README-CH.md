@@ -1,6 +1,6 @@
 # **Queue-Request**
 
-[English](https://github.com/Jcanno/queue-request)|(简体中文)[https://github.com/Jcanno/queue-request/blob/master/README-CH.md]
+[English](https://github.com/Jcanno/queue-request)|[简体中文](https://github.com/Jcanno/queue-request/blob/master/README-CH.md)
 
 ## **Api**
 
