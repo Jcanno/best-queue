@@ -2,10 +2,21 @@
 
 [English](https://github.com/Jcanno/queue-request)|[简体中文](https://github.com/Jcanno/queue-request/blob/master/README-CH.md)
 
+## Introduction
+
+`queue-request` is a library to control your concurrence request like a queue.A queue is consisted of task.A task contains one `Promise Function` at least.When a task finished, the next task will run.
+
+## Installation
+type in the command line to install with:
+
+```js
+npm i queue-request
+```
+
 ## **Api**
 
 ```js
-// genenral func
+// genenral func will be used below examples
 function generatorPromiseFunc(v) {
 	return function() {
 		return Promise.resolve(v);
@@ -220,4 +231,6 @@ function generatorDelayPromiseFunc(v) {
 
 	- **type**: `Function`
 
+## Lisence
 
+Copyright (c) 2020 Jacano Licensed under the MIT license.

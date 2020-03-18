@@ -2,10 +2,21 @@
 
 [English](https://github.com/Jcanno/queue-request)|[简体中文](https://github.com/Jcanno/queue-request/blob/master/README-CH.md)
 
+## 介绍
+`queue-request`一个能像队列控制并发请求的库。队列由任务组成，任务中至少包含一个生成Promise的函数，当一个任务执行完毕后，下一个任务会继续执行。
+
+## 安装
+在命令函输入以下代码进行安装:
+
+```js
+npm i queue-request
+```
+
+
 ## **Api**
 
 ```js
-// 生成promise 函数的通用函数
+// 将会被以下例子使用的生成promise 函数的通用函数
 function generatorPromiseFunc(v) {
 	return function() {
 		return Promise.resolve(v);
@@ -219,4 +230,7 @@ function generatorDelayPromiseFunc(v) {
 
 	- **类型**: `Function`
 
+## Lisence
+
+Copyright (c) 2020 Jacano Licensed under the MIT license.
 
