@@ -24,16 +24,52 @@ class Queue {
 		this.setState(INIT);
 	}
 
-	Add(task) {
-		if(Array.isArray(task)) {
-			this._queue.push(...task);
-			this._waiting.push(...task);
-		}else {
-			this._queue.push(task);
-			this._waiting.push(task);
+	Add(task, priority = 0) {
+		if(task) {
+			if(Array.isArray(task)) {
+				this._queue.push(...task);
+				for(let i = 0; i < task.length; i++) {
+					this.addPriority(task[i], priority);
+					this._waiting.push(task[i]);
+				}
+			}else {
+				this._queue.push(task);
+				this._waiting.push(task);
+				this.addPriority(task, priority);
+			}
 		}
 
 		return this;
+	}
+
+	sortWaiting() {
+		this._waiting.sort((a, b) => b.priority - a.priority);
+	}
+
+	addPriority(value, priority) {
+		if(typeof priority !== 'number') {
+			priority = 0;
+		}
+		let obj;
+
+		if(this.needToObject(value)) {
+			obj = new Object(value);
+		}else {
+			obj = value;
+		}
+
+		obj.priority = priority;
+		return obj;
+	}
+
+	needToObject(value) {
+		return (
+			value === null ||
+			typeof value === 'string' ||
+			typeof value === 'number' ||
+			typeof value === 'symbol' ||
+			typeof value === 'boolean'
+		);
 	}
 
 	Run() {
@@ -50,9 +86,12 @@ class Queue {
 		const waits = this._waiting.length;
 		const tasks = this.max <= waits ? this.max : waits;
 
-		this.setState(RUNNING);
-		this._running.push(...this._waiting.splice(0, tasks));
-		this.excuteTask();
+		if(waits) {
+			this.setState(RUNNING);
+			this.sortWaiting();
+			this._running.push(...this._waiting.splice(0, tasks));
+			this.excuteTask();
+		}
 	}
 
 	excuteTask() {
