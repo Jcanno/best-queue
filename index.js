@@ -47,17 +47,10 @@ class Queue {
 	}
 
 	addPriority(value, priority) {
-		if(typeof priority !== 'number') {
-			priority = 0;
-		}
+		typeof priority !== 'number' && (priority = 0);
 		let obj;
 
-		if(this.needToObject(value)) {
-			obj = new Object(value);
-		}else {
-			obj = value;
-		}
-
+		this.needToObject(value) ? obj = new Object(value) : obj = value;
 		obj.priority = priority;
 		return obj;
 	}
@@ -96,28 +89,45 @@ class Queue {
 
 	excuteTask() {
 		let tasks = [];
+		let tlength = tasks.length;
 
 		for(let fn of this._running) {
 			typeof fn === 'function' ? tasks.push(fn()) : tasks.push(Promise.resolve(fn));
 		}
 
-		Promise.all(tasks).then(val => {
-			this._finished.push(...val);
-			this._running.splice(0, tasks.length);
-			typeof this.cb === 'function' && this.cb(val, this);
-			if(this._state === PAUSE) {
-				this.resolve(this._finished);
+		// TODO: excute promise reject
+		let i = 0;
+		let result = [];
+
+		while(i < tlength) {
+			let task = tasks[i];
+
+			task.then(val => {
+				result.push(val);
+			}).catch(err => {
+				this.reject(err);
 				return;
-			}
-			if(this._waiting.length) {
-				setTimeout(() => {
-					this.handleQueue();
-				}, this.interval);
-			}else {
-				this.setState(FINISH);
-				this.resolve(this._finished);
-			}
-		});
+			});
+			i++;
+		}
+
+		// Promise.all(tasks).then(val => {
+		this._finished.push(...result);
+		this._running.splice(0, tlength);
+		typeof this.cb === 'function' && this.cb(result, this);
+		if(this._state === PAUSE) {
+			this.resolve(this._finished);
+			return;
+		}
+		if(this._waiting.length) {
+			setTimeout(() => {
+				this.handleQueue();
+			}, this.interval);
+		}else {
+			this.setState(FINISH);
+			this.resolve(this._finished);
+		}
+		// });
 	}
 
 	Stop() {
@@ -146,12 +156,42 @@ class Queue {
 	}
 
 	Result() {
-		if(this._promise === null) {
-			return Promise.resolve([]);
-		}else {
-			return this._promise;
-		}
+		return this._promise === null ? Promise.resolve([]) : this._promise;
 	}
 }
 
-export default Queue;
+function generatorPromiseFunc(v) {
+	return function() {
+		return Promise.resolve(v);
+	};
+}
+
+function generatorDelayPromiseFunc(v) {
+	return function() {
+		return new Promise(r => {
+			setTimeout(() => {
+				r(v);
+			}, 1000);
+		});
+	};
+}
+
+let options = {
+	max: 1,
+	interval: 1 * 1000,
+	cb: (val, queue) => {
+		if(val[0] === 1) {
+			// 队列将会暂停
+			queue.Pause();
+		}
+	}
+};
+let queue = new Queue(options);
+
+queue.Add(generatorPromiseFunc(1))
+	 .Add(generatorDelayPromiseFunc(2));
+queue.Run();
+queue.Result().then(res => {
+	console.log(res);    // [1]
+});
+// export default Queue;
