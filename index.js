@@ -26,6 +26,7 @@ class Queue {
 
 	Add(task, priority = 0) {
 		if(task) {
+			this._needSort = true;
 			if(Array.isArray(task)) {
 				this._queue.push(...task);
 				for(let i = 0; i < task.length; i++) {
@@ -39,11 +40,14 @@ class Queue {
 			}
 		}
 
+		console.log(this._waiting);
+		
 		return this;
 	}
 
 	sortWaiting() {
 		this._waiting.sort((a, b) => b.priority - a.priority);
+		this._needSort = false;
 	}
 
 	addPriority(value, priority) {
@@ -81,7 +85,7 @@ class Queue {
 
 		if(waits) {
 			this.setState(RUNNING);
-			this.sortWaiting();
+			this._needSort && this.sortWaiting();
 			this._running.push(...this._waiting.splice(0, tasks));
 			this.excuteTask();
 		}
@@ -89,45 +93,33 @@ class Queue {
 
 	excuteTask() {
 		let tasks = [];
-		let tlength = tasks.length;
 
 		for(let fn of this._running) {
 			typeof fn === 'function' ? tasks.push(fn()) : tasks.push(Promise.resolve(fn));
 		}
 
+		let tlength = tasks.length;
 		// TODO: excute promise reject
-		let i = 0;
-		let result = [];
-
-		while(i < tlength) {
-			let task = tasks[i];
-
-			task.then(val => {
-				result.push(val);
-			}).catch(err => {
-				this.reject(err);
+		
+		Promise.all(tasks).then(result => {
+			this._finished.push(...result);
+			this._running.splice(0, tlength);
+			typeof this.cb === 'function' && this.cb(result, this);
+			if(this._state === PAUSE) {
+				this.resolve(this._finished);
 				return;
-			});
-			i++;
-		}
-
-		// Promise.all(tasks).then(val => {
-		this._finished.push(...result);
-		this._running.splice(0, tlength);
-		typeof this.cb === 'function' && this.cb(result, this);
-		if(this._state === PAUSE) {
-			this.resolve(this._finished);
-			return;
-		}
-		if(this._waiting.length) {
-			setTimeout(() => {
-				this.handleQueue();
-			}, this.interval);
-		}else {
-			this.setState(FINISH);
-			this.resolve(this._finished);
-		}
-		// });
+			}
+			if(this._waiting.length) {
+				setTimeout(() => {
+					this.handleQueue();
+				}, this.interval);
+			}else {
+				this.setState(FINISH);
+				this.resolve(this._finished);
+			}
+		}).catch(err => {
+			this.reject(err);
+		});
 	}
 
 	Stop() {
@@ -160,38 +152,4 @@ class Queue {
 	}
 }
 
-function generatorPromiseFunc(v) {
-	return function() {
-		return Promise.resolve(v);
-	};
-}
-
-function generatorDelayPromiseFunc(v) {
-	return function() {
-		return new Promise(r => {
-			setTimeout(() => {
-				r(v);
-			}, 1000);
-		});
-	};
-}
-
-let options = {
-	max: 1,
-	interval: 1 * 1000,
-	cb: (val, queue) => {
-		if(val[0] === 1) {
-			// 队列将会暂停
-			queue.Pause();
-		}
-	}
-};
-let queue = new Queue(options);
-
-queue.Add(generatorPromiseFunc(1))
-	 .Add(generatorDelayPromiseFunc(2));
-queue.Run();
-queue.Result().then(res => {
-	console.log(res);    // [1]
-});
-// export default Queue;
+export default Queue;

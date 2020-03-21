@@ -4,26 +4,28 @@
   "description": "Use queue to handle request task, base on Promise ",
   "main": "index.js",
   "scripts": {
-		"commit": "git-cz ",
-    "test": "echo \"Error: no test specified\" && exit 1"
-	},
-	"files": [
+    "commit": "git-cz ",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
+  },
+  "files": [
     "index.js"
   ],
   "keywords": [
-		"request",
-		"request-queue",
-		"promise",
-		"promise-queue"
-	],
-	"author": "Jacano",
-	"license": "MIT",
+    "request",
+    "request-queue",
+    "promise",
+    "promise-queue"
+  ],
+  "author": "Jacano",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Jcanno/queue-request/issues"
   },
   "homepage": "https://github.com/Jcanno/queue-request#readme",
   "devDependencies": {
     "commitizen": "^4.0.3",
+    "conventional-changelog-cli": "^2.0.31",
     "eslint": "^6.8.0",
     "eslint-config-scales": "^0.2.0"
   }
