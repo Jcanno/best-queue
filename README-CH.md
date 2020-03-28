@@ -12,6 +12,21 @@
 npm i queue-request
 ```
 
+## 用法
+通过`ES6 模块`导入:
+```js
+import Queue from 'queue-request';
+```
+
+`Node`环境下导入:
+```js
+const Queue = require('queue-request');
+```
+
+构造器:
+```js
+new Queue(option);
+```
 
 ## **Api**
 

@@ -13,6 +13,23 @@ type in the command line to install with:
 npm i queue-request
 ```
 
+## Usage
+Import as an ES Module:
+```js
+import Queue from 'queue-request';
+```
+
+Import in Node:
+```js
+const Queue = require('queue-request');
+```
+
+Constructor:
+```js
+new Queue(option);
+```
+
+
 ## **Api**
 
 ```js

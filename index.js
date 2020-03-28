@@ -40,8 +40,6 @@ class Queue {
 			}
 		}
 
-		console.log(this._waiting);
-		
 		return this;
 	}
 
@@ -99,7 +97,6 @@ class Queue {
 		}
 
 		let tlength = tasks.length;
-		// TODO: excute promise reject
 		
 		Promise.all(tasks).then(result => {
 			this._finished.push(...result);
