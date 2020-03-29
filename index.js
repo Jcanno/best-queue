@@ -1,10 +1,12 @@
+import axios from 'axios';
+
 const STOP = 'stop';
 const RUNNING = 'running';
 const PAUSE = 'pause';
 const INIT = 'init';
 const FINISH = 'finish';
 const noop = () => {};
-
+const urlReg = /^((https?|ftp|file):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
 class Queue {
 
 	constructor(options) {
@@ -30,13 +32,15 @@ class Queue {
 			if(Array.isArray(task)) {
 				this._queue.push(...task);
 				for(let i = 0; i < task.length; i++) {
-					this.addPriority(task[i], priority);
+					task = this.generatorRequestFunc(task[i]);
+					task['priority'] = priority;
 					this._waiting.push(task[i]);
 				}
 			}else {
 				this._queue.push(task);
+				task = this.generatorRequestFunc(task);
+				task['priority'] = priority;
 				this._waiting.push(task);
-				this.addPriority(task, priority);
 			}
 		}
 
@@ -48,23 +52,26 @@ class Queue {
 		this._needSort = false;
 	}
 
-	addPriority(value, priority) {
-		typeof priority !== 'number' && (priority = 0);
-		let obj;
-
-		this.needToObject(value) ? obj = new Object(value) : obj = value;
-		obj.priority = priority;
-		return obj;
-	}
-
-	needToObject(value) {
-		return (
-			value === null ||
-			typeof value === 'string' ||
-			typeof value === 'number' ||
-			typeof value === 'symbol' ||
-			typeof value === 'boolean'
-		);
+	// transform task to function in order to add priority and get promise func
+	generatorRequestFunc(task) {
+		if(typeof task !== 'function') {
+			let axiosConfig;
+			if(typeof task === 'string' && urlReg.test(task)) {
+				axiosConfig = {
+					url: task,
+					method: 'get'
+				}
+			}else if(typeof task === 'object' && task.url) {
+				axiosConfig = task;
+			}else {
+				return function() {
+					return task;
+				}
+			}
+			return function() {
+				return axios(axiosConfig)
+			}
+		}
 	}
 
 	Run() {
@@ -93,7 +100,7 @@ class Queue {
 		let tasks = [];
 
 		for(let fn of this._running) {
-			typeof fn === 'function' ? tasks.push(fn()) : tasks.push(Promise.resolve(fn));
+			tasks.push(fn())
 		}
 
 		let tlength = tasks.length;
