@@ -1,5 +1,6 @@
 const Queue = require('../queue-request')
 const assert = require('assert');
+const axios = require('axios');
 
 describe('# options', function() {
 	let queue = new Queue();
@@ -26,11 +27,90 @@ describe('# Add', function() {
     queue = new Queue();
   });
 
-
 	describe('task is function', function() {
 		it('every task should be function', function() {
 			queue.Add('test task');
 			assert.equal(typeof queue._waiting[0], 'function');
 		})
 	});
+
+	describe('add url task', function() {
+		it('url task should be a function return promise', function() {
+			let url = 'https://www.npmjs.com';
+			queue.Add(url);
+
+			assert.notStrictEqual(queue._waiting[0], function() {
+				return axios({
+					url,
+					method: 'get'
+				})
+			});
+		})
+	});
+
+	describe('add not url task', function() {
+		it('not url task should be itself', function() {
+			let tasks = [
+				'hello',
+				1,
+				true,
+				{
+					name: 'Jacano'
+				}
+			]
+			queue.Add(tasks)
+
+			assert.equal(queue._waiting[0](), tasks[0]());
+			assert.equal(queue._waiting[1](), tasks[1]());
+			assert.equal(queue._waiting[2](), tasks[2]());
+			assert.equal(queue._waiting[3](), tasks[3]());
+		})
+	});
+
+	describe('add url option', function() {
+		it('url option task should be a function return promise', function() {
+			let option = {
+				url: 'https://www.npmjs.com',
+				method: 'get'
+			}
+			queue.Add(option);
+
+			assert.notStrictEqual(queue._waiting[0], function() {
+				return axios(option)
+			});
+		})
+	});
+})
+
+describe('# state', () => {
+	let queue;
+
+	beforeEach(function() {
+    queue = new Queue();
+	});
+	
+	describe('pause state', () => {
+		it('state should not be pause when queue init', function() {
+			queue.Pause();
+			assert.notEqual(queue._state, 'pause')
+		})
+	})
+	
+})
+
+describe('# result', () => {
+	let queue;
+
+	beforeEach(function() {
+    queue = new Queue();
+	});
+	
+	describe('empty result', () => {
+		it('result should be empty array when queue task is empty', function() {
+			queue.Result().then(res => {
+				assert.notEqual(res, [])
+			})
+		})
+	})
+	
 })
