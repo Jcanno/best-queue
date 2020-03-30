@@ -5,15 +5,18 @@ const RUNNING = 'running';
 const PAUSE = 'pause';
 const INIT = 'init';
 const FINISH = 'finish';
-const noop = () => {};
+const noop = function() {};
 const urlReg = /^((https?|ftp|file):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
 class Queue {
 
-	constructor(options) {
+	constructor(options = {}) {
 		this.options = options;
 		this.init();
 	}
 
+	/**
+	 * @description init queue configuration, called in new Queue and Stop() cases
+	 */
 	init() {
 		this.interval = this.options.interval || 0;
 		this.max = this.options.max || 1;
@@ -26,27 +29,38 @@ class Queue {
 		this.setState(INIT);
 	}
 
+	/**
+	 * @param task {any} 
+	 */
 	Add(task, priority = 0) {
 		if(task) {
 			this._needSort = true;
 			if(Array.isArray(task)) {
-				this._queue.push(...task);
 				for(let i = 0; i < task.length; i++) {
-					task[i] = this.generatorRequestFunc(task[i]);
-					task[i]['priority'] = priority;
-					this._waiting.push(task[i]);
+					task[i] = this.handleTask(task[i], priority)
 				}
 			}else {
-				this._queue.push(task);
-				task = this.generatorRequestFunc(task);
-				task['priority'] = priority;
-				this._waiting.push(task);
+				task = this.handleTask(task, priority)
 			}
 		}
 
 		return this;
 	}
 
+	/**
+	 * @description generatorRequestFunc、addPriority
+	 */
+	handleTask(task, priority) {
+		task = this.generatorRequestFunc(task);
+		task['priority'] = typeof priority === 'number' ? priority : 0;
+		this._queue.push(task);
+		this._waiting.push(task);
+		return task;
+	}
+
+	/**
+	 * @description sort waiting task by priority, worked after by calling Add()
+	 */
 	sortWaiting() {
 		this._waiting.sort((a, b) => b.priority - a.priority);
 		this._needSort = false;
@@ -74,6 +88,9 @@ class Queue {
 		}
 	}
 
+	/**
+	 * @description task will go on 
+	 */
 	Run() {
 		if(this._state !== RUNNING && (this._promise === null || this._state === FINISH)) {
 			this._promise = new Promise((resolve, reject) => {
@@ -151,6 +168,9 @@ class Queue {
 		this._state = state;
 	}
 
+	/**
+	 * @returns {Promise} 
+	 */
 	Result() {
 		return this._promise === null ? Promise.resolve([]) : this._promise;
 	}
