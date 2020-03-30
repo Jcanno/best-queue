@@ -32,8 +32,8 @@ class Queue {
 			if(Array.isArray(task)) {
 				this._queue.push(...task);
 				for(let i = 0; i < task.length; i++) {
-					task = this.generatorRequestFunc(task[i]);
-					task['priority'] = priority;
+					task[i] = this.generatorRequestFunc(task[i]);
+					task[i]['priority'] = priority;
 					this._waiting.push(task[i]);
 				}
 			}else {
