@@ -3,7 +3,7 @@
 [English](https://github.com/Jcanno/queue-request)|[简体中文](https://github.com/Jcanno/queue-request/blob/master/README-CH.md)
 
 ## 介绍
-`queue-request`一个能像队列控制并发请求的库。队列由任务组成，任务中至少包含一个生成Promise的函数，当一个任务执行完毕后，下一个任务会继续执行。
+`queue-request`能处理并发请求。队列由多批请求组成，每批请求中至少包含一个请求，当一批请求完成，下一批请求将会继续执行。
 
 ## 安装
 在命令函输入以下代码进行安装:
@@ -28,52 +28,83 @@ const Queue = require('queue-request');
 new Queue(option);
 ```
 
-## **Api**
-
+## **Example**
 ```js
-// 将会被以下例子使用的生成promise 函数的通用函数
-function generatorPromiseFunc(v) {
-	return function() {
-		return Promise.resolve(v);
-	};
+import Queue from 'queue-request';
+import axios from 'axios';
+
+let queue = new Queue({
+	max: 1,
+	interval: 1 * 1000,
+	// 每批请求完成时的回调
+	cb: (result, queue) => {
+		console.log('a batch of requests done')
+	}
+})
+
+// 添加请求到队列中
+queue.Add('https://www.npmjs.com')
+		 .Add({
+			 url: 'https://www.webpackjs.com/',
+			 method: 'get'
+		 })
+
+// 通过axios封装请求函数
+function getVuejs() {
+	return axios({
+		url: 'https://cn.vuejs.org'
+	})
 }
 
-function generatorDelayPromiseFunc(v) {
-	return function() {
-		return new Promise(r => {
-			setTimeout(() => {
-				r(v);
-			}, 1000);
-		});
-	};
+function getReactjs() {
+	return axios({
+		url: 'https://reactjs.org'
+	})
 }
+// 添加数组请求
+queue.Add([
+	getVuejs,
+	getReactjs
+])
+// 开始处理请求
+queue.Run()
+// 获取请求结果
+queue.Result()
+		 .then(result => {
+				console.log(result)
+			})
+		 .catch(err => {
+			  console.log(err)
+		 })
 ```
+
+## **API**
+
 - options:
 
 	- **描述**:  用于初始化 `Queue` 的属性
 
 	- **类型**: `Object`
 
-	- **默认值**: `{max: 1, interval: 0, cb: () => {}}`
+	- **默认值**: `{}`
 
 	- **用法**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// 每批请求完成时的回调
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 	```
 
 - options.max:
 
-	- **描述**:  每个任务中最大并发数量, 当`max`为1时, 任务会一个接着一个执行
+	- **描述**:  每批请求中的最大请求量，默认为1
 
 	- **类型**: `Number`
 
@@ -81,7 +112,7 @@ function generatorDelayPromiseFunc(v) {
 
 - options.interval:
 
-	- **描述**:  任务之间的间隔时间(毫秒)
+	- **描述**:  每批请求之间的间隔(毫秒)
 
 	- **类型**: `Number`
 
@@ -89,41 +120,42 @@ function generatorDelayPromiseFunc(v) {
 
 - options.cb:
 
-	- **描述**:  当一个任务完成时，会执行回调函数，它接收当前任务的返回值和示例`Queue`, 可以在回调函数中执行暂停队列、添加任务、检查返回值等操作
+	- **描述**:  每批请求完成时的回调
+
 	- **类型**: `Function`
 
 	- **默认值**: `() => {}`
 
-- Add(task):
+- Add(requests, priority):
 
-	- **描述**:  `Add` 接收函数或者函数数组, 函数需要返回一个`Promise`
+	- **描述**:  添加请求到队列中
 
-	- **类型**: `Function<Function|Array<Function>>`
+	- **类型**: `requests`: any, `priority`: Number
 
 	- **用法**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// 每批请求完成时的回调
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	// 可以传递一个函数
-	queue.Add(generatorPromiseFunc(1))
-	// 可以传递函数的数组
+	// 添加url请求, 默认get
+	queue.Add('https://www.webpackjs.com/', 1)
+	// 添加数组url请求
 	queue.Add([
-		generatorPromiseFunc(2),
-		generatorPromiseFunc(3),
-	])
-	// 可以链式调用Add 添加任务
-	queue.Add(generatorPromiseFunc(4))
-		 .Add(generatorPromiseFunc(5))
+		'https://cn.vuejs.org',
+		'https://reactjs.org',
+	], 5)
+	// 链式添加url请求
+	// https://www.npmjs.com 将会最先被执行，它具有最高优先级, priority默认为0
+	queue.Add('https://www.npmjs.com', 6)
+		 .Add('https://github.com')
 	```
 
 - Run() 
@@ -135,113 +167,130 @@ function generatorDelayPromiseFunc(v) {
 	- **用法**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// 每批请求完成时的回调
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
+	// 添加url请求, 默认get
+	queue.Add('https://www.webpackjs.com/')
 	queue.Run()
 	```
 
 - Result()
 
-	- **描述**:  `Result` 返回一个`Promise`, 当队列执行完毕时会返回整个队列的结果
+	- **描述**:  `Result` 返回一个`Promise` 并可以获取所有请求的结果
 
 	- **类型**: `Function`
 
 	- **用法**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// 每批请求完成时的回调
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
+	// 添加url请求, 默认get
+	queue.Add('https://www.webpackjs.com/')
 	queue.Run()
-	queue.Result().then(res => {
-		console.log(res)    // [1]
+	queue.Result().then(result => {
+		console.log(result)
 	})
 	```
 
 - Pause()
 
-	- **描述**:  `Pause` 会暂停队列, 此时的`Result`方法会返回当前已执行任务的结果
+	- **描述**:  暂停队列, 此时的`Result`方法会返回当前已完成请求的结果
 
 	- **类型**: `Function`
 
 	- **用法**:
 
 	```js
-	let options = {
+	let queue = new Queue({
 		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				// 队列将会暂停
+		// 每批请求完成时的回调
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
+			// 队列在请求https://www.webpackjs.com后暂停
+			if(result[0].config.url === 'https://www.webpackjs.com') {
 				queue.Pause()
 			}
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
-		 .Add(generatorDelayPromiseFunc(2))
+	// 添加url请求, 默认get
+	queue.Add('https://www.webpackjs.com')
+	// 添加数组url请求
+	queue.Add([
+		'https://cn.vuejs.org',
+		'https://reactjs.org',
+	])
 	queue.Run()
-	queue.Result().then(res => {
-		console.log(res)    // [1]
+	queue.Result().then(result => {
+		// 请求队列暂停
+		// 在这个案例中，会返回第一批请求的结果
+		console.log(result)
 	})
 	```
 
 - Continue()
 
-	- **描述**:  `Continue` 会继续执行队列，此时需要再次调用`Result`方法来获取所有任务的结果
+	- **描述**: 继续执行队列，此时需要再次调用`Result`方法来获取所有请求的结果
 
 	- **类型**: `Function`
 
 	- **用法**:
 
 	```js
-	let options = {
+	let queue = new Queue({
 		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				// 队列将会暂停
+		// 每批请求完成时的回调
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
+			// 队列在请求https://www.webpackjs.com后暂停
+			if(result[0].config.url === 'https://www.webpackjs.com') {
 				queue.Pause()
 			}
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
-		 .Add(generatorDelayPromiseFunc(2))
+	// 添加url请求, 默认get
+	queue.Add('https://www.webpackjs.com')
+	// 添加数组url请求
+	queue.Add([
+		'https://cn.vuejs.org',
+		'https://reactjs.org',
+	])
+
 	queue.Run()
 	queue.Result().then(res => {
-		console.log(res)    // [1]
-		queue.Continue() // 队列将会继续运行
-		queue.Result().then(val => {
-			console.log(val)    // [1, 2]
+		// 队列将会继续运行
+		queue.Continue()
+		queue.Result().then(result => {
+			console.log(result)
 		})
 	})
 	```
 
 - Stop()
 
-	- **描述**:  `Stop` 会停止并且重新初始化整个队列，`Result`的返回值也会被清空
+	- **描述**: 停止并且重新初始化整个队列，所有请求的返回值会被清空
 
 	- **类型**: `Function`
 

@@ -1,7 +1,7 @@
 {
   "name": "queue-request",
-  "version": "1.5.1",
-  "description": "Use queue to handle request task, base on Promise",
+  "version": "1.6.0",
+  "description": "Use queue to handle request task, base on Axios",
   "main": "queue-request.js",
   "scripts": {
     "release": "npm run build && npm publish",
@@ -18,7 +18,11 @@
     "request",
     "request-queue",
     "promise",
-    "promise-queue"
+		"promise-queue",
+		"axios",
+		"axios-queue",
+		"queue-request",
+		"queue-promise"
   ],
   "author": "Jacano",
   "license": "MIT",

@@ -60,10 +60,10 @@ describe('# Add', function() {
 			]
 			queue.Add(tasks)
 
-			assert.equal(queue._waiting[0](), tasks[0]());
-			assert.equal(queue._waiting[1](), tasks[1]());
-			assert.equal(queue._waiting[2](), tasks[2]());
-			assert.equal(queue._waiting[3](), tasks[3]());
+			assert.equal(queue._waiting[0](), tasks[0]);
+			assert.equal(queue._waiting[1](), tasks[1]);
+			assert.equal(queue._waiting[2](), tasks[2]);
+			assert.equal(queue._waiting[3](), tasks[3]);
 		})
 	});
 

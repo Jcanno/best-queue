@@ -1,5 +1,4 @@
 import axios from 'axios';
-
 const STOP = 'stop';
 const RUNNING = 'running';
 const PAUSE = 'pause';
@@ -20,6 +19,7 @@ class Queue {
 	init() {
 		this.interval = this.options.interval || 0;
 		this.max = this.options.max || 1;
+		this.max = this.max > 1 ? this.max : 1;
 		this.cb = this.options.cb || noop;
 		this._queue = [];
 		this._waiting = [];
@@ -30,17 +30,18 @@ class Queue {
 	}
 
 	/**
-	 * @param task {any} 
+	 * @param {any}    requests 
+	 * @param {number} priority 
 	 */
-	Add(task, priority = 0) {
-		if(task) {
+	Add(requests, priority = 0) {
+		if(requests) {
 			this._needSort = true;
-			if(Array.isArray(task)) {
-				for(let i = 0; i < task.length; i++) {
-					task[i] = this.handleTask(task[i], priority)
-				}
+			if(Array.isArray(requests)) {
+				requests.forEach(request => {
+					this.handleTask(request, priority)
+				})
 			}else {
-				task = this.handleTask(task, priority)
+				this.handleTask(requests, priority)
 			}
 		}
 
@@ -50,46 +51,47 @@ class Queue {
 	/**
 	 * @description generatorRequestFunc、addPriority
 	 */
-	handleTask(task, priority) {
-		task = this.generatorRequestFunc(task);
-		task['priority'] = typeof priority === 'number' ? priority : 0;
-		this._queue.push(task);
-		this._waiting.push(task);
-		return task;
+	handleTask(request, priority) {
+		request = this.generatorRequestFunc(request);
+		request.priority = typeof priority === 'number' ? priority : 0;
+		this._queue.push(request);
+		this._waiting.push(request);
 	}
 
 	/**
-	 * @description sort waiting task by priority, worked after by calling Add()
+	 * @description sort waiting requests by priority, worked after by calling Add()
 	 */
 	sortWaiting() {
 		this._waiting.sort((a, b) => b.priority - a.priority);
 		this._needSort = false;
 	}
 
-	// transform task to function in order to add priority and get promise func
-	generatorRequestFunc(task) {
-		if(typeof task !== 'function') {
+	// transform request to function in order to add priority and get promise func
+	generatorRequestFunc(request) {
+		if(typeof request !== 'function') {
 			let axiosConfig;
-			if(typeof task === 'string' && urlReg.test(task)) {
+			if(typeof request === 'string' && urlReg.test(request)) {
 				axiosConfig = {
-					url: task,
+					url: request,
 					method: 'get'
 				}
-			}else if(typeof task === 'object' && task.url) {
-				axiosConfig = task;
+			}else if(typeof request === 'object' && request.url) {
+				axiosConfig = request;
 			}else {
 				return function() {
-					return task;
+					return request;
 				}
 			}
 			return function() {
 				return axios(axiosConfig)
 			}
+		}else {
+			return request;
 		}
 	}
 
 	/**
-	 * @description task will go on 
+	 * @description request will go on 
 	 */
 	Run() {
 		if(this._state !== RUNNING && (this._promise === null || this._state === FINISH)) {
@@ -103,26 +105,26 @@ class Queue {
 
 	handleQueue() {
 		const waits = this._waiting.length;
-		const tasks = this.max <= waits ? this.max : waits;
+		const requests = this.max <= waits ? this.max : waits;
 
 		if(waits) {
 			this.setState(RUNNING);
 			this._needSort && this.sortWaiting();
-			this._running.push(...this._waiting.splice(0, tasks));
+			this._running.push(...this._waiting.splice(0, requests));
 			this.excuteTask();
 		}
 	}
 
 	excuteTask() {
-		let tasks = [];
+		let requests = [];
 
 		for(let fn of this._running) {
-			tasks.push(fn())
+			requests.push(fn())
 		}
 
-		let tlength = tasks.length;
+		let tlength = requests.length;
 		
-		Promise.all(tasks).then(result => {
+		Promise.all(requests).then(result => {
 			this._finished.push(...result);
 			this._running.splice(0, tlength);
 			typeof this.cb === 'function' && this.cb(result, this);

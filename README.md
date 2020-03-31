@@ -4,9 +4,9 @@
 
 ## Introduction
 
-`queue-request` is a library to control your concurrence request like a queue.A queue is consisted of task.A task contains one `Promise Function` at least.When a task finished, the next task will run.
+`queue-request` supports to control concurrence request.A queue is consisted of some batches of requests.Every batch of requests contains one `request` at least.When a batch of requests finished, the next batch of requests will run.
 
-## Installation
+## Install
 type in the command line to install with:
 
 ```js
@@ -29,53 +29,83 @@ Constructor:
 new Queue(option);
 ```
 
-
-## **Api**
-
+## **Example**
 ```js
-// genenral func will be used below examples
-function generatorPromiseFunc(v) {
-	return function() {
-		return Promise.resolve(v);
-	};
+import Queue from 'queue-request';
+import axios from 'axios';
+
+let queue = new Queue({
+	max: 1,
+	interval: 1 * 1000,
+	// callback when every batch of requests done
+	cb: (result, queue) => {
+		console.log('a batch of requests done')
+	}
+})
+
+// add request to queue 
+queue.Add('https://www.npmjs.com')
+		 .Add({
+			 url: 'https://www.webpackjs.com/',
+			 method: 'get'
+		 })
+
+// package request function by axios
+function getVuejs() {
+	return axios({
+		url: 'https://cn.vuejs.org'
+	})
 }
 
-function generatorDelayPromiseFunc(v) {
-	return function() {
-		return new Promise(r => {
-			setTimeout(() => {
-				r(v);
-			}, 1000);
-		});
-	};
+function getReactjs() {
+	return axios({
+		url: 'https://reactjs.org'
+	})
 }
+// add array request
+queue.Add([
+	getVuejs,
+	getReactjs
+])
+// start to handle requests
+queue.Run()
+// get result of requests
+queue.Result()
+		 .then(result => {
+				console.log(result)
+			})
+		 .catch(err => {
+			  console.log(err)
+		 })
 ```
+
+## **API**
+
 - options:
 
 	- **description**:  the property to initialize `Queue`
 
 	- **type**: `Object`
 
-	- **default**: `{max: 1, interval: 0, cb: () => {}}`
+	- **default**: `{}`
 
 	- **usage**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// callback when every batch of requests done
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 	```
 
 - options.max:
 
-	- **description**:  the max concurrence number in one task, the task will be excuted one by one when max is 1
+	- **description**:  the max number of every batch of requests, default to 1
 
 	- **type**: `Number`
 
@@ -83,7 +113,7 @@ function generatorDelayPromiseFunc(v) {
 
 - options.interval:
 
-	- **description**:  the interval time between two tasks(milliscond)
+	- **description**:  the interval time between every batches of requests(milliscond)
 
 	- **type**: `Number`
 
@@ -91,160 +121,177 @@ function generatorDelayPromiseFunc(v) {
 
 - options.cb:
 
-	- **description**:  the callback when a task finished, it receives one Array what is the result of this task and an instance `Queue`. You can `Pause`、`Add` the queue, of cource, you can do something else like check the result
+	- **description**:  the callback when every batch of requests finished
 
 	- **type**: `Function`
 
 	- **default**: `() => {}`
 
-- Add(task):
+- Add(requests, priority):
 
-	- **description**:  `Add` receives Function or Array of Function, the Function should return a `Promise`.
+	- **description**:  add request to queue
 
-	- **type**: `Function<Function|Array<Function>>`
+	- **type**: `requests`: any, `priority`: Number
 
 	- **usage**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// callback when every batch of requests done
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	// you can transmit Function
-	queue.Add(generatorPromiseFunc(1))
-	// you can transmit Array of Function
+	// add url request, default get method
+	queue.Add('https://www.webpackjs.com/', 1)
+	// add array url request
 	queue.Add([
-		generatorPromiseFunc(2),
-		generatorPromiseFunc(3),
-	])
-	// you can also chain call method Add
-	queue.Add(generatorPromiseFunc(4))
-		 .Add(generatorPromiseFunc(5))
+		'https://cn.vuejs.org',
+		'https://reactjs.org',
+	], 5)
+	// chain add url request
+	// https://www.npmjs.com will handle first due to its highest priority, priority default to 0
+	queue.Add('https://www.npmjs.com', 6)
+		 .Add('https://github.com')
 	```
 
 - Run() 
 
-	- **description**:  `Run` will start the queue.
+	- **description**:  `Run` will start the queue
 
 	- **type**: `Function`
 
 	- **usage**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// callback when every batch of requests done
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
+	// add url request, default get method
+	queue.Add('https://www.webpackjs.com/')
 	queue.Run()
 	```
 
 - Result()
 
-	- **description**:  `Result` return Promise which carry the result of all tasks when the queue finish over.
+	- **description**:  `Result` return Promise and the result of all requests.
 
 	- **type**: `Function`
 
 	- **usage**:
 
 	```js
-	let options = {
-		max: 5,
+	let queue = new Queue({
+		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				queue.Pause()
-			}
+		// callback when every batch of requests done
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
+	// add url request
+	queue.Add('https://www.webpackjs.com/')
 	queue.Run()
-	queue.Result().then(res => {
-		console.log(res)    // [1]
+	queue.Result().then(result => {
+		console.log(result)
 	})
 	```
 
 - Pause()
 
-	- **description**:  `Pause` will pause the queue, the `Result` method will return the result of finished task.
+	- **description**:  `Pause` the queue, `Result` method will return the result of finished requests.
 
 	- **type**: `Function`
 
 	- **usage**:
 
 	```js
-	let options = {
+	let queue = new Queue({
 		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				// the queue will be paused
+		// callback when every batch of requests done
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
+			// queue will be paused after request https://www.webpackjs.com
+			if(result[0].config.url === 'https://www.webpackjs.com') {
 				queue.Pause()
 			}
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
-		 .Add(generatorDelayPromiseFunc(2))
+	// add url request
+	queue.Add('https://www.webpackjs.com')
+	// add array url request
+	queue.Add([
+		'https://cn.vuejs.org',
+		'https://reactjs.org',
+	])
 	queue.Run()
-	queue.Result().then(res => {
-		console.log(res)    // [1]
+	queue.Result().then(result => {
+		// the queue paused
+		// return the result of first batch of requests in this case
+		console.log(result)
 	})
 	```
 
 - Continue()
 
-	- **description**:  `Continue` will rerun the queue, you need to call the `Result` method again to get the result of all task.
+	- **description**: rerun the queue, you need to call the `Result` method again to get the result of all requests.
 
 	- **type**: `Function`
 
 	- **usage**:
 
 	```js
-	let options = {
+	let queue = new Queue({
 		max: 1,
 		interval: 1 * 1000,
-		cb: (val, queue) => {
-			if(val[0] === 1) {
-				// the queue will be paused
+		// callback when every batch of requests done
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
+			// a batch of requests done the queue will be paused
+			if(result[0].config.url === 'https://www.webpackjs.com') {
 				queue.Pause()
 			}
 		}
-	}
+	})
 	let queue = new Queue(options)
 
-	queue.Add(generatorPromiseFunc(1))
-		 .Add(generatorDelayPromiseFunc(2))
+	// add url request
+	queue.Add('https://www.webpackjs.com/')
+	// add array url request
+	queue.Add([
+		'https://cn.vuejs.org',
+		'https://reactjs.org',
+	])
+
 	queue.Run()
-	queue.Result().then(res => {
-		console.log(res)    // [1]
-		queue.Continue() // the queue will rerun
-		queue.Result().then(val => {
-			console.log(val)    // [1, 2]
+	queue.Result().then(() => {
+		// queue will rerun
+		queue.Continue()
+		queue.Result().then(result => {
+			console.log(result)
 		})
 	})
 	```
 
 - Stop()
 
-	- **description**:  `Stop` will stop and reinit the queue, the result of finished task will be cleared too.
+	- **description**: stop and reinit the queue, all result of finished requests will be cleared too.
 
 	- **type**: `Function`
 
