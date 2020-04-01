@@ -28,7 +28,7 @@ const Queue = require('queue-request');
 new Queue(option);
 ```
 
-## **Example**
+## **例子**
 ```js
 import Queue from 'queue-request';
 import axios from 'axios';
