@@ -71,12 +71,12 @@ queue.Add([
 queue.Run()
 // get result of requests
 queue.Result()
-	 .then(result => {
-		  console.log(result)
+     .then(result => {
+         console.log(result)
      })
-	 .catch(err => {
-		  console.log(err)
-	 })
+     .catch(err => {
+         console.log(err)
+     })
 ```
 
 ## **API**
@@ -154,7 +154,7 @@ queue.Result()
 	// chain add url request
 	// https://www.npmjs.com will handle first due to its highest priority, priority default to 0
 	queue.Add('https://www.npmjs.com', 6)
-		 .Add('https://github.com')
+         .Add('https://github.com')
 	```
 
 - Run() 
