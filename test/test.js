@@ -27,9 +27,9 @@ describe('# Add', function() {
     queue = new Queue();
   });
 
-	describe('task is function', function() {
+	describe('request is function', function() {
 		it('every task should be function', function() {
-			queue.Add('test task');
+			queue.Add('test request');
 			assert.equal(typeof queue._waiting[0], 'function');
 		})
 	});
@@ -48,9 +48,9 @@ describe('# Add', function() {
 		})
 	});
 
-	describe('add not url task', function() {
+	describe('add not url request', function() {
 		it('not url task should be itself', function() {
-			let tasks = [
+			const requests = [
 				'hello',
 				1,
 				true,
@@ -58,25 +58,45 @@ describe('# Add', function() {
 					name: 'Jacano'
 				}
 			]
-			queue.Add(tasks)
+			queue.Add(requests)
 
-			assert.equal(queue._waiting[0](), tasks[0]);
-			assert.equal(queue._waiting[1](), tasks[1]);
-			assert.equal(queue._waiting[2](), tasks[2]);
-			assert.equal(queue._waiting[3](), tasks[3]);
+			assert.equal(queue._waiting[0](), requests[0]);
+			assert.equal(queue._waiting[1](), requests[1]);
+			assert.equal(queue._waiting[2](), requests[2]);
+			assert.equal(queue._waiting[3](), requests[3]);
 		})
 	});
 
+	describe('add array url request', function(){
+		it('array url should be divided url request', function(){
+			const requests = [
+				'https://www.npmjs.com',
+				'https://www.webpackjs.com',
+				'https://cn.vuejs.org',
+				'https://reactjs.org'
+			]
+
+			queue.Add(requests)
+
+			for(i = 0; i < requests.length; i++) {
+				assert.notStrictEqual(queue._waiting[i], function() {
+					return axios(requests[i])
+				});
+			}
+		})
+	})
+	
+
 	describe('add url option', function() {
 		it('url option task should be a function return promise', function() {
-			let option = {
+			let request = {
 				url: 'https://www.npmjs.com',
 				method: 'get'
 			}
-			queue.Add(option);
+			queue.Add(request);
 
 			assert.notStrictEqual(queue._waiting[0], function() {
-				return axios(option)
+				return axios(request)
 			});
 		})
 	});

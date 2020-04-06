@@ -100,7 +100,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 	```
 
 - options.max:
@@ -144,7 +143,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 
 	// add url request, default get method
 	queue.Add('https://www.webpackjs.com/', 1)
@@ -176,7 +174,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 
 	// add url request, default get method
 	queue.Add('https://www.webpackjs.com/')
@@ -200,7 +197,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 
 	// add url request
 	queue.Add('https://www.webpackjs.com/')
@@ -231,7 +227,6 @@ queue.Result()
 			}
 		}
 	})
-	let queue = new Queue(options)
 
 	// add url request
 	queue.Add('https://www.webpackjs.com')
@@ -269,8 +264,6 @@ queue.Result()
 			}
 		}
 	})
-	let queue = new Queue(options)
-
 	// add url request
 	queue.Add('https://www.webpackjs.com/')
 	// add array url request

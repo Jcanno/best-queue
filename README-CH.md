@@ -99,7 +99,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 	```
 
 - options.max:
@@ -143,7 +142,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 
 	// 添加url请求, 默认get
 	queue.Add('https://www.webpackjs.com/', 1)
@@ -175,7 +173,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 
 	// 添加url请求, 默认get
 	queue.Add('https://www.webpackjs.com/')
@@ -199,7 +196,6 @@ queue.Result()
 			console.log('a batch of requests done')
 		}
 	})
-	let queue = new Queue(options)
 
 	// 添加url请求, 默认get
 	queue.Add('https://www.webpackjs.com/')
@@ -230,7 +226,6 @@ queue.Result()
 			}
 		}
 	})
-	let queue = new Queue(options)
 
 	// 添加url请求, 默认get
 	queue.Add('https://www.webpackjs.com')
@@ -268,7 +263,6 @@ queue.Result()
 			}
 		}
 	})
-	let queue = new Queue(options)
 
 	// 添加url请求, 默认get
 	queue.Add('https://www.webpackjs.com')

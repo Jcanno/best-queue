@@ -38,7 +38,7 @@ class Queue {
 			this._needSort = true;
 			if(Array.isArray(requests)) {
 				requests.forEach(request => {
-					this.handleTask(request, priority)
+					this.Add(request, priority)
 				})
 			}else {
 				this.handleTask(requests, priority)
