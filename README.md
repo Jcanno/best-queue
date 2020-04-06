@@ -45,10 +45,10 @@ let queue = new Queue({
 
 // add request to queue 
 queue.Add('https://www.npmjs.com')
-		 .Add({
-			 url: 'https://www.webpackjs.com/',
-			 method: 'get'
-		 })
+     .Add({
+	  url: 'https://www.webpackjs.com/',
+	  method: 'get'
+     })
 
 // package request function by axios
 function getVuejs() {
@@ -71,12 +71,12 @@ queue.Add([
 queue.Run()
 // get result of requests
 queue.Result()
-		 .then(result => {
-				console.log(result)
-			})
-		 .catch(err => {
-			  console.log(err)
-		 })
+	 .then(result => {
+		  console.log(result)
+     })
+	 .catch(err => {
+		  console.log(err)
+	 })
 ```
 
 ## **API**
