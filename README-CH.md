@@ -44,10 +44,10 @@ let queue = new Queue({
 
 // 添加请求到队列中
 queue.Add('https://www.npmjs.com')
-	 .Add({
-		 url: 'https://www.webpackjs.com/',
-		 method: 'get'
-	 })
+     .Add({
+          url: 'https://www.webpackjs.com/',
+          method: 'get'
+     })
 
 // 通过axios封装请求函数
 function getVuejs() {
@@ -70,12 +70,12 @@ queue.Add([
 queue.Run()
 // 获取请求结果
 queue.Result()
-	 .then(result => {
-		 console.log(result)
-	 })
-	 .catch(err => {
-		 console.log(err)
-	 })
+     .then(result => {
+         console.log(result)
+     })
+     .catch(err => {
+         console.log(err)
+     })
 ```
 
 ## **API**
@@ -153,7 +153,7 @@ queue.Result()
 	// 链式添加url请求
 	// https://www.npmjs.com 将会最先被执行，它具有最高优先级, priority默认为0
 	queue.Add('https://www.npmjs.com', 6)
-		 .Add('https://github.com')
+	     .Add('https://github.com')
 	```
 
 - Run() 
