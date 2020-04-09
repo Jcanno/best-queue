@@ -34,7 +34,7 @@ class Queue {
 	private _waiting: Array<Request>;
 	private _running: Array<Request>;
 	private _finished: Array<any>;
-	private _promise: Promise<any>
+	private _promise: Promise<any>;
 	private _state: State;
 	private _needSort: boolean;
 	private resolve: (v: Array<any>) => void;
@@ -50,8 +50,7 @@ class Queue {
 	 */
 	init() {
 		this.interval = this.options.interval || 0;
-		this.max = this.options.max || 1;
-		this.max = this.max > 1 ? this.max : 1;
+		this.max = this.options.max > 1 ? this.options.max : 1;
 		this.cb = this.options.cb || noop;
 		this._queue = [];
 		this._waiting = [];
@@ -84,8 +83,8 @@ class Queue {
 	 * @description generatorRequestFunc、addPriority
 	 */
 	handleRequest(request: any, priority: number): void {
-		const requestFn: RequestFn = this.generatorRequestFunc(request);
-		const excutedRequestFn: Request = this.addPriority(requestFn, priority);
+		const requestFn = this.generatorRequestFunc(request);
+		const excutedRequestFn = this.addPriority(requestFn, priority);
 		this._queue.push(excutedRequestFn);
 		this._waiting.push(excutedRequestFn);
 	}
@@ -139,7 +138,7 @@ class Queue {
 
 	handleQueue(): void {
 		const waits: number = this._waiting.length;
-		const requestNum: number = this.max <= waits ? this.max : waits;
+		const requestNum = this.max <= waits ? this.max : waits;
 
 		if(waits) {
 			this.setState(State.Running);
@@ -164,11 +163,11 @@ class Queue {
 			requests.push(request.requestFn())
 		}
 
-		const tlength = requests.length;
+		const rlength: number = requests.length;
 		
 		Promise.all(requests).then(result => {
 			this._finished.push(...result);
-			this._running.splice(0, tlength);
+			this._running.splice(0, rlength);
 			typeof this.cb === 'function' && this.cb(result, this);
 			if(this._state === State.Pause) {
 				this.resolve(this._finished);
