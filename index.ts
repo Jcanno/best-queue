@@ -11,18 +11,18 @@ const noop: () => void = function() {};
 const urlReg = /^((https?|ftp|file):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
 
 interface Options {
-	max?: number,
-	interval?: number,
-	cb?: Function
+	max?: number;
+	interval?: number;
+	cb?: Function;
 }
 
 interface RequestFn {
-	(): Object
+	(): Record<string, any>;
 }
 
 interface Request {
-	requestFn: RequestFn,
-	priority: number
+	requestFn: RequestFn;
+	priority: number;
 }
 
 class Queue {
@@ -48,7 +48,7 @@ class Queue {
 	/**
 	 * @description init queue configuration, called in new Queue and Stop() cases
 	 */
-	init() {
+	init(): void {
 		this.interval = this.options.interval || 0;
 		this.max = this.options.max > 1 ? this.options.max : 1;
 		this.cb = this.options.cb || noop;
@@ -69,10 +69,10 @@ class Queue {
 			this._needSort = true;
 			if(Array.isArray(requests)) {
 				requests.forEach(request => {
-					this.Add(request, priority)
-				})
+					this.Add(request, priority);
+				});
 			}else {
-				this.handleRequest(requests, priority)
+				this.handleRequest(requests, priority);
 			}
 		}
 
@@ -85,6 +85,7 @@ class Queue {
 	handleRequest(request: any, priority: number): void {
 		const requestFn = this.generatorRequestFunc(request);
 		const excutedRequestFn = this.addPriority(requestFn, priority);
+
 		this._queue.push(excutedRequestFn);
 		this._waiting.push(excutedRequestFn);
 	}
@@ -93,21 +94,22 @@ class Queue {
 	generatorRequestFunc(request: any): RequestFn {
 		if(typeof request !== 'function') {
 			let axiosConfig;
+
 			if(typeof request === 'string' && urlReg.test(request)) {
 				axiosConfig = {
 					url: request,
 					method: 'get'
-				}
+				};
 			}else if(typeof request === 'object' && request.url) {
 				axiosConfig = request;
 			}else {
-				return function() {
+				return function(): Record<string, any> {
 					return request;
-				}
+				};
 			}
-			return function() {
-				return axios(axiosConfig)
-			}
+			return function(): Record<string, any> {
+				return axios(axiosConfig);
+			};
 		}else {
 			return request;
 		}
@@ -118,7 +120,7 @@ class Queue {
 		const request: Request = {
 			requestFn,
 			priority
-		}
+		};
 
 		return request;
 	}
@@ -157,10 +159,10 @@ class Queue {
 	}
 
 	excuteTask(): void {
-		let requests: Array<Object> = [];
+		const requests: Array<Record<string, any>> = [];
 
-		for(let request of this._running) {
-			requests.push(request.requestFn())
+		for(const request of this._running) {
+			requests.push(request.requestFn());
 		}
 
 		const rlength: number = requests.length;

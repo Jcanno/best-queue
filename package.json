@@ -12,8 +12,8 @@
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "files": [
-		"index.ts",
-		"index.d.ts"
+    "index.ts",
+    "index.d.ts"
   ],
   "keywords": [
     "request",
@@ -32,6 +32,8 @@
   },
   "homepage": "https://github.com/Jcanno/queue-request#readme",
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.27.0",
+    "@typescript-eslint/parser": "^2.27.0",
     "commitizen": "^4.0.3",
     "conventional-changelog-cli": "^2.0.31",
     "eslint": "^6.8.0",

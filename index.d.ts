@@ -11,7 +11,7 @@ interface Options {
     cb?: Function;
 }
 interface RequestFn {
-    (): Object;
+    (): Record<string, any>;
 }
 interface Request {
     requestFn: RequestFn;
