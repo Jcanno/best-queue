@@ -14,7 +14,7 @@ interface RequestFn {
     (): Record<string, any>;
 }
 interface Request {
-    requestFn: RequestFn;
+    (): Record<string, any>;
     priority: number;
 }
 declare class Queue {

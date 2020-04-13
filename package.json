@@ -10,7 +10,8 @@
     "commit": "git-cz",
     "test": "npm run build && mocha",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
-  },
+	},
+	"types": "index.d.ts",
   "files": [
     "index.ts",
     "index.d.ts"

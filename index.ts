@@ -21,7 +21,7 @@ interface RequestFn {
 }
 
 interface Request {
-	requestFn: RequestFn;
+	(): Record<string, any>;
 	priority: number;
 }
 
@@ -49,9 +49,9 @@ class Queue {
 	 * @description init queue configuration, called in new Queue and Stop() cases
 	 */
 	init(): void {
-		this.interval = this.options.interval || 0;
+		this.interval = this.options.interval > 0 ? this.options.interval : 0;
 		this.max = this.options.max > 1 ? this.options.max : 1;
-		this.cb = this.options.cb || noop;
+		this.cb = typeof this.options.cb === 'function' ? this.options.cb : noop;
 		this._queue = [];
 		this._waiting = [];
 		this._running = [];
@@ -117,11 +117,9 @@ class Queue {
 
 	addPriority(requestFn: RequestFn, priority: number): Request {
 		priority = typeof priority === 'number' ? priority : 0;
-		const request: Request = {
-			requestFn,
-			priority
-		};
+		const request = requestFn as Request;
 
+		request.priority = priority;
 		return request;
 	}
 
@@ -162,7 +160,7 @@ class Queue {
 		const requests: Array<Record<string, any>> = [];
 
 		for(const request of this._running) {
-			requests.push(request.requestFn());
+			requests.push(request());
 		}
 
 		const rlength: number = requests.length;
@@ -218,6 +216,12 @@ class Queue {
 	 */
 	Result(): Promise<any> {
 		return this._promise === null ? Promise.resolve([]) : this._promise;
+	}
+
+	setOptions(options: Options): void {
+		this.interval = options.interval > 0 ? (this.options.interval = options.interval) : this.interval;
+		this.max = options.max > 1 ?  (this.options.max = options.max) : this.max;
+		this.cb = typeof options.cb === 'function' ? (this.options.cb = options.cb) : this.cb;
 	}
 }
 

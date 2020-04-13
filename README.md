@@ -104,7 +104,7 @@ queue.Result()
 
 - options.max:
 
-	- **description**:  the max number of every batch of requests, default to 1
+	- **description**:  the max number of every batch of requests, default and min to 1
 
 	- **type**: `Number`
 
