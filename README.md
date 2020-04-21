@@ -1,6 +1,6 @@
 # **Queue-Request**
 
-[English](https://github.com/Jcanno/queue-request)|[简体中文](https://github.com/Jcanno/queue-request/blob/master/README-CH.md)
+English|[简体中文](https://github.com/Jcanno/queue-request/blob/master/README-CH.md)
 
 ## Introduction
 
@@ -26,7 +26,7 @@ const Queue = require('queue-request');
 
 Constructor:
 ```js
-new Queue(option);
+new Queue(options);
 ```
 
 ## **Example**
@@ -287,6 +287,29 @@ queue.Result()
 	- **description**: stop and reinit the queue, all result of finished requests will be cleared too.
 
 	- **type**: `Function`
+
+- setOptions(options)
+
+	- **description**: set options dynamically.
+
+	- **type**: `Options`
+
+	- **usage**: 
+
+	```js
+	let queue = new Queue({
+		max: 1,
+		interval: 1 * 1000,
+		// callback when every batch of requests done
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
+			// queue options be set dynamically
+			queue.setOptions({
+				max: 2
+			})
+		}
+	})
+	```
 
 ## Lisence
 

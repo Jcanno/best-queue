@@ -65,5 +65,6 @@ declare class Queue {
      * @return {Promise}
      */
     Result(): Promise<any>;
+    setOptions(options: Options): void;
 }
 export default Queue;

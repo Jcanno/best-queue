@@ -1,6 +1,6 @@
 # **Queue-Request**
 
-[English](https://github.com/Jcanno/queue-request)|[简体中文](https://github.com/Jcanno/queue-request/blob/master/README-CH.md)
+[English](https://github.com/Jcanno/queue-request)|简体中文
 
 ## 介绍
 `queue-request`能处理并发请求。队列由多批请求组成，每批请求中至少包含一个请求，当一批请求完成，下一批请求将会继续执行。
@@ -25,7 +25,7 @@ const Queue = require('queue-request');
 
 构造器:
 ```js
-new Queue(option);
+new Queue(options);
 ```
 
 ## **例子**
@@ -287,6 +287,30 @@ queue.Result()
 	- **描述**: 停止并且重新初始化整个队列，所有请求的返回值会被清空
 
 	- **类型**: `Function`
+
+- setOptions(options)
+
+	- **description**: 动态设置options
+
+	- **type**: `Options`
+
+	- **usage**: 
+
+	```js
+	let queue = new Queue({
+		max: 1,
+		interval: 1 * 1000,
+		// 每批请求完成时的回调
+		cb: (result, queue) => {
+			console.log('a batch of requests done')
+			// 队列配置会被动态设置
+			queue.setOptions({
+				max: 2
+			})
+		}
+	})
+	```
+
 
 ## Lisence
 

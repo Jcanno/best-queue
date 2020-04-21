@@ -137,7 +137,7 @@ class Queue {
 	}
 
 	handleQueue(): void {
-		const waits: number = this._waiting.length;
+		const waits = this._waiting.length;
 		const requestNum = this.max <= waits ? this.max : waits;
 
 		if(waits) {
@@ -163,7 +163,7 @@ class Queue {
 			requests.push(request());
 		}
 
-		const rlength: number = requests.length;
+		const rlength = requests.length;
 		
 		Promise.all(requests).then(result => {
 			this._finished.push(...result);
