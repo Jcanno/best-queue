@@ -1,4 +1,4 @@
-const Queue = require('../queue-request')
+const Queue = require('../index')
 const assert = require('assert');
 const axios = require('axios');
 
@@ -85,7 +85,6 @@ describe('# Add', function() {
 			}
 		})
 	})
-	
 
 	describe('add url option', function() {
 		it('url option task should be a function return promise', function() {
