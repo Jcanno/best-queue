@@ -5,6 +5,13 @@
 ## 介绍
 `queue-request`能处理并发请求。队列由多批请求组成，每批请求中至少包含一个请求，当一批请求完成，下一批请求将会继续执行。
 
+## 特性
+- 支持链式添加请求
+- 支持设置请求优先级
+- 支持每批请求回调
+- 支持队列暂停、继续和停止
+- 支持动态修改配置
+
 ## 安装
 在命令函输入以下代码进行安装:
 
@@ -49,7 +56,7 @@ queue.Add('https://www.npmjs.com')
           method: 'get'
      })
 
-// 通过axios封装请求函数
+// 封装请求函数
 function getVuejs() {
 	return axios({
 		url: 'https://cn.vuejs.org'
@@ -288,11 +295,11 @@ queue.Result()
 
 	- **类型**: `Function`
 
-- setOptions(options)
+- Options(options)
 
 	- **description**: 动态设置options
 
-	- **type**: `Options`
+	- **type**: `Object`
 
 	- **usage**: 
 
@@ -304,7 +311,7 @@ queue.Result()
 		cb: (result, queue) => {
 			console.log('a batch of requests done')
 			// 队列配置会被动态设置
-			queue.setOptions({
+			queue.Options({
 				max: 2
 			})
 		}

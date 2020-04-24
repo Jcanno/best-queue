@@ -1,7 +1,7 @@
 {
   "name": "queue-request",
-  "version": "2.2.0",
-  "description": "Use queue to handle request task, base on Axios",
+  "version": "2.2.1",
+  "description": "Use queue to handle request task, base on promise",
   "main": "index.js",
   "scripts": {
     "release": "npm run build && npm publish",

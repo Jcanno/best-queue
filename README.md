@@ -6,6 +6,13 @@ English|[简体中文](https://github.com/Jcanno/queue-request/blob/master/READM
 
 `queue-request` supports to control concurrence request.A queue is consisted of some batches of requests.Every batch of requests contains one `request` at least.When a batch of requests finished, the next batch of requests will run.
 
+## Feature
+- supports chain add request
+- supports set priority of request
+- supports callback of every batch of request
+- supports pause/continue/stop queue
+- supports set options dynamically
+
 ## Install
 type in the command line to install with:
 
@@ -50,7 +57,7 @@ queue.Add('https://www.npmjs.com')
 	  method: 'get'
      })
 
-// package request function by axios
+// package request function
 function getVuejs() {
 	return axios({
 		url: 'https://cn.vuejs.org'
@@ -288,11 +295,11 @@ queue.Result()
 
 	- **type**: `Function`
 
-- setOptions(options)
+- Options(options)
 
 	- **description**: set options dynamically.
 
-	- **type**: `Options`
+	- **type**: `Object`
 
 	- **usage**: 
 
@@ -304,7 +311,7 @@ queue.Result()
 		cb: (result, queue) => {
 			console.log('a batch of requests done')
 			// queue options be set dynamically
-			queue.setOptions({
+			queue.Options({
 				max: 2
 			})
 		}

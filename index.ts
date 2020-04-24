@@ -168,7 +168,7 @@ class Queue {
 		Promise.all(requests).then(result => {
 			this._finished.push(...result);
 			this._running.splice(0, rlength);
-			typeof this.cb === 'function' && this.cb(result, this);
+			this.cb(result, this);
 			if(this._state === State.Pause) {
 				this.resolve(this._finished);
 				return;
@@ -218,7 +218,7 @@ class Queue {
 		return this._promise === null ? Promise.resolve([]) : this._promise;
 	}
 
-	setOptions(options: Options): void {
+	Options(options: Options): void {
 		this.interval = options.interval > 0 ? (this.options.interval = options.interval) : this.interval;
 		this.max = options.max > 1 ?  (this.options.max = options.max) : this.max;
 		this.cb = typeof options.cb === 'function' ? (this.options.cb = options.cb) : this.cb;
