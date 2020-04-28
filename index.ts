@@ -24,7 +24,7 @@ interface Request {
 	(): Record<string, any>;
 	priority: number;
 }
-
+// TODO: add more comments
 class Queue {
 	options: Options;
 	interval: number;
@@ -48,7 +48,7 @@ class Queue {
 	/**
 	 * @description init queue configuration, called in new Queue and Stop() cases
 	 */
-	init(): void {
+	private init(): void {
 		this.interval = this.options.interval > 0 ? this.options.interval : 0;
 		this.max = this.options.max > 1 ? this.options.max : 1;
 		this.cb = typeof this.options.cb === 'function' ? this.options.cb : noop;
@@ -82,7 +82,7 @@ class Queue {
 	/**
 	 * @description generatorRequestFunc、addPriority
 	 */
-	handleRequest(request: any, priority: number): void {
+	private handleRequest(request: any, priority: number): void {
 		const requestFn = this.generatorRequestFunc(request);
 		const excutedRequestFn = this.addPriority(requestFn, priority);
 
@@ -91,31 +91,30 @@ class Queue {
 	}
 
 	// transform request to function in order to add priority and get promise func
-	generatorRequestFunc(request: any): RequestFn {
+	private generatorRequestFunc(request: any): RequestFn {
 		if(typeof request !== 'function') {
-			let axiosConfig;
+			const isUrl = (url: string): boolean => urlReg.test(url);
+			const getRequestFn = (config): RequestFn => () => axios(config);
+			const defaultRequestFn = request => () => request;
 
-			if(typeof request === 'string' && urlReg.test(request)) {
-				axiosConfig = {
+			if(typeof request === 'string' && isUrl(request)) {
+				const config = {
 					url: request,
 					method: 'get'
 				};
+
+				return getRequestFn(config);
 			}else if(typeof request === 'object' && request.url) {
-				axiosConfig = request;
+				return getRequestFn(request);
 			}else {
-				return function(): Record<string, any> {
-					return request;
-				};
+				return defaultRequestFn(request);
 			}
-			return function(): Record<string, any> {
-				return axios(axiosConfig);
-			};
 		}else {
 			return request;
 		}
 	}
 
-	addPriority(requestFn: RequestFn, priority: number): Request {
+	private addPriority(requestFn: RequestFn, priority: number): Request {
 		priority = typeof priority === 'number' ? priority : 0;
 		const request = requestFn as Request;
 
@@ -136,7 +135,7 @@ class Queue {
 		}
 	}
 
-	handleQueue(): void {
+	private handleQueue(): void {
 		const waits = this._waiting.length;
 		const requestNum = this.max <= waits ? this.max : waits;
 
@@ -151,12 +150,12 @@ class Queue {
 	/**
 	 * @description sort waiting requests by priority, worked after by calling Add()
 	 */
-	sortWaiting(): void {
+	private sortWaiting(): void {
 		this._waiting.sort((a, b) => b.priority - a.priority);
 		this._needSort = false;
 	}
 
-	excuteTask(): void {
+	private excuteTask(): void {
 		const requests: Array<Record<string, any>> = [];
 
 		for(const request of this._running) {
@@ -207,7 +206,7 @@ class Queue {
 		}
 	}
 
-	setState(state: State): void {
+	private setState(state: State): void {
 		this._state = state;
 	}
 

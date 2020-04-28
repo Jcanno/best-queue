@@ -1,21 +1,7 @@
-declare enum State {
-    Init = 1,
-    Running = 2,
-    Pause = 3,
-    Stop = 4,
-    Finish = 5
-}
 interface Options {
     max?: number;
     interval?: number;
     cb?: Function;
-}
-interface RequestFn {
-    (): Record<string, any>;
-}
-interface Request {
-    (): Record<string, any>;
-    priority: number;
 }
 declare class Queue {
     options: Options;
@@ -35,7 +21,7 @@ declare class Queue {
     /**
      * @description init queue configuration, called in new Queue and Stop() cases
      */
-    init(): void;
+    private init;
     /**
      * @param {any}    requests
      * @param {number} priority
@@ -44,27 +30,27 @@ declare class Queue {
     /**
      * @description generatorRequestFunc、addPriority
      */
-    handleRequest(request: any, priority: number): void;
-    generatorRequestFunc(request: any): RequestFn;
-    addPriority(requestFn: RequestFn, priority: number): Request;
+    private handleRequest;
+    private generatorRequestFunc;
+    private addPriority;
     /**
      * @description request will go on
      */
     Run(): void;
-    handleQueue(): void;
+    private handleQueue;
     /**
      * @description sort waiting requests by priority, worked after by calling Add()
      */
-    sortWaiting(): void;
-    excuteTask(): void;
+    private sortWaiting;
+    private excuteTask;
     Stop(): void;
     Pause(): void;
     Continue(): void;
-    setState(state: State): void;
+    private setState;
     /**
      * @return {Promise}
      */
     Result(): Promise<any>;
-    setOptions(options: Options): void;
+    Options(options: Options): void;
 }
 export default Queue;

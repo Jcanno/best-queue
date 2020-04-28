@@ -1,6 +1,6 @@
 {
   "name": "queue-request",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Use queue to handle request task, base on promise",
   "main": "index.js",
   "scripts": {
