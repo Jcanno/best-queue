@@ -40,6 +40,10 @@ class Queue {
 	private resolve: (v: Array<any>) => void;
 	private reject: (v: Array<any>) => void;
 
+	/**
+	 * store options to queue
+	 * can be changed in Options method
+	 */
 	constructor(options: Options = {}) {
 		this.options = options;
 		this.init();
@@ -63,6 +67,9 @@ class Queue {
 	/**
 	 * @param {any}    requests 
 	 * @param {number} priority 
+	 * add request to queue
+	 * once add queue, the queue should be sorted again
+	 * Add will recursion array request
 	 */
 	Add(requests: any, priority = 0): Queue {
 		if(requests) {
@@ -80,7 +87,9 @@ class Queue {
 	}
 
 	/**
-	 * @description generatorRequestFunc、addPriority
+	 * two effects:
+	 * 1. transform all requests to function which return a promise
+	 * 2. add priority for every request to sort the queue
 	 */
 	private handleRequest(request: any, priority: number): void {
 		const requestFn = this.generatorRequestFunc(request);
@@ -90,7 +99,6 @@ class Queue {
 		this._waiting.push(excutedRequestFn);
 	}
 
-	// transform request to function in order to add priority and get promise func
 	private generatorRequestFunc(request: any): RequestFn {
 		if(typeof request !== 'function') {
 			const isUrl = (url: string): boolean => urlReg.test(url);
@@ -123,7 +131,8 @@ class Queue {
 	}
 
 	/**
-	 * @description request will go on 
+	 * get queue to run, genertor a final promise
+	 * 
 	 */
 	Run(): void {
 		if(this._state !== State.Running && (this._promise === null || this._state === State.Finish)) {
@@ -190,12 +199,14 @@ class Queue {
 		this.init();
 	}
 
+	// pause queue
 	Pause(): void {
 		if(this._state === State.Running) {
 			this.setState(State.Pause);
 		}
 	}
 
+	// make queue run only the queue state is pause
 	Continue(): void {
 		if(this._state === State.Pause) {
 			this._promise = new Promise((resolve, reject) => {
@@ -206,17 +217,22 @@ class Queue {
 		}
 	}
 
+	// change the state of queue 
 	private setState(state: State): void {
 		this._state = state;
 	}
 
 	/**
+	 * return the final promise
 	 * @return {Promise} 
 	 */
 	Result(): Promise<any> {
 		return this._promise === null ? Promise.resolve([]) : this._promise;
 	}
 
+	/**
+	 * set options dynamically
+	 */
 	Options(options: Options): void {
 		this.interval = options.interval > 0 ? (this.options.interval = options.interval) : this.interval;
 		this.max = options.max > 1 ?  (this.options.max = options.max) : this.max;
