@@ -17,13 +17,13 @@ interface Options {
 }
 
 interface RequestFn {
-	(): Record<string, any>;
+	(): Promise<any>;
 }
 
-interface Request {
-	(): Record<string, any>;
+interface Request extends RequestFn {
 	priority: number;
 }
+
 // TODO: add more comments
 class Queue {
 	options: Options;
