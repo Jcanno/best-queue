@@ -1,44 +1,24 @@
 import axios from 'axios';
+import { State, Options, RequestFn, Request } from './types';
 
-enum State {
-	Init = 1,
-	Running,
-	Pause,
-	Stop,
-	Finish
-}
 const noop: () => void = function() {};
 const urlReg = /^((https?|ftp|file):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
-
-interface Options {
-	max?: number;
-	interval?: number;
-	cb?: Function;
-}
-
-interface RequestFn {
-	(): Promise<any>;
-}
-
-interface Request extends RequestFn {
-	priority: number;
-}
 
 // TODO: add more comments
 class Queue {
 	options: Options;
-	interval: number;
-	max: number;
-	cb: Function;
-	private _queue: Array<Request>;
-	private _waiting: Array<Request>;
-	private _running: Array<Request>;
-	private _finished: Array<any>;
-	private _promise: Promise<any>;
+	interval = 0;
+	max = 1;
+	cb: Function = noop;
+	private _queue: Request [] = [];
+	private _waiting: Request [] = [];
+	private _running: Request [] = [];
+	private _finished: any [] = [];
+	private _promise: Promise<any> = null;
 	private _state: State;
 	private _needSort: boolean;
-	private resolve: (v: Array<any>) => void;
-	private reject: (v: Array<any>) => void;
+	private resolve: (v: any []) => void;
+	private reject: (v: any []) => void;
 
 	/**
 	 * store options to queue
@@ -99,7 +79,7 @@ class Queue {
 		this._waiting.push(excutedRequestFn);
 	}
 
-	private generatorRequestFunc(request: any): RequestFn {
+	private generatorRequestFunc(request): RequestFn {
 		if(typeof request !== 'function') {
 			const isUrl = (url: string): boolean => urlReg.test(url);
 			const getRequestFn = (config): RequestFn => () => axios(config);
@@ -165,7 +145,7 @@ class Queue {
 	}
 
 	private excuteTask(): void {
-		const requests: Array<Record<string, any>> = [];
+		const requests: Promise<any> [] = [];
 
 		for(const request of this._running) {
 			requests.push(request());
