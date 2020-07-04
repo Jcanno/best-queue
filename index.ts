@@ -5,19 +5,17 @@ const noop: () => void = function() {};
 function createQueue(options: Options) {
 	const { max = 1, interval = 0, taskCb = noop } = options;
 	const finished = [];
-	let queue: Task[] = [];
-	let currentPromise: Promise<any> = null;
 	let needSort = false;
+	let currentQueue: Task[] = [];
+	let currentPromise: Promise<any> = null;
 	let currentState: State = State.Init;
+	let currentIndex = 0;
 	let resolveFn: (v: any []) => void;
 	let rejectFn: (v: any []) => void;
-	let currentIndex = 0;
 
 	// 判断传入的配置类型
 	if(typeof max !== 'number' || typeof interval !== 'number' || typeof taskCb !== 'function') {
-		throw new TypeError(`
-			Except max, interval to be a number, taskCb to be a function
-		`);
+		throw new TypeError('Except max, interval to be a number, taskCb to be a function');
 	}
 
 	/**
@@ -33,13 +31,11 @@ function createQueue(options: Options) {
 			}else {
 				// 每个任务都是返回promise的函数
 				if(typeof tasks !== 'function') {
-					throw new TypeError(`
-						every task must be a function which return a promise
-					`);
+					throw new TypeError('every task must be a function which return a promise');
 				}
 				const task = addPriority(tasks, priority);
 
-				queue.push(task);
+				currentQueue.push(task);
 			}
 		}
 	}
@@ -73,7 +69,7 @@ function createQueue(options: Options) {
 
 	// 给任务排序
 	function sortQueue() {
-		queue.sort((a, b) => b.priority - a.priority);
+		currentQueue.sort((a, b) => b.priority - a.priority);
 		needSort = false;
 	}
 
@@ -81,9 +77,7 @@ function createQueue(options: Options) {
 		const p = task();
 
 		if(p.then === undefined) {
-			throw new Error(`
-				every task must return a promise
-			`);
+			throw new Error('every task must return a promise');
 		}
 		p.then(async res => {
 			finished[resultIndex] = res;
@@ -96,16 +90,16 @@ function createQueue(options: Options) {
 				setState(State.Finish);
 				resolveFn(finished);
 			}else {
-				if(currentIndex !== queue.length - 1 && currentState === State.Running) {
+				if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
 					await new Promise(r => {
 						setTimeout(() => {
 							r();
 						}, interval);
 					});
-					if(currentIndex !== queue.length - 1 && currentState === State.Running) {
-						const nextTask = queue[++currentIndex];
+					if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
+						const nextTask = currentQueue[++currentIndex];
 						
-						excuteTask(nextTask, currentIndex === queue.length - 1, currentIndex);
+						excuteTask(nextTask, currentIndex === currentQueue.length - 1, currentIndex);
 					}
 				}
 			}
@@ -116,12 +110,12 @@ function createQueue(options: Options) {
 	}
 
 	function runTasks() {
-		const totalTasks = queue.length;
+		const totalTasks = currentQueue.length;
 
 		for(let i = currentIndex ? currentIndex : 0; i < (max >= totalTasks ? totalTasks : max); i++) {
 			currentIndex = i;
 			// 处理每一个任务
-			excuteTask(queue[currentIndex], currentIndex === totalTasks - 1, i);
+			excuteTask(currentQueue[currentIndex], currentIndex === totalTasks - 1, i);
 		}
 	}
 
@@ -131,9 +125,7 @@ function createQueue(options: Options) {
 
 	function result(): Promise<any> {
 		if(currentPromise === null) {
-			throw new Error(`
-				should add task and run the queue
-			`);
+			throw new Error('should add task and run the currentQueue');
 		}
 		return currentPromise;
 	}
@@ -155,11 +147,11 @@ function createQueue(options: Options) {
 	}
 
 	function clear() {
-		queue = [];
+		currentQueue = [];
 		currentPromise = Promise.resolve([]);
 	}
 
-	return {
+	const queue = {
 		run,
 		add,
 		result,
@@ -167,6 +159,8 @@ function createQueue(options: Options) {
 		resume,
 		clear
 	};
+
+	return queue;
 }
 
 export {

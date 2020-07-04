@@ -2,7 +2,6 @@ export enum State {
 	Init,
 	Running,
 	Pause,
-	Stop,
 	Finish,
 	Error
 }

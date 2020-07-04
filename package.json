@@ -10,8 +10,8 @@
     "commit": "git-cz",
     "test": "npm run build && mocha",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
-	},
-	"types": "index.d.ts",
+  },
+  "types": "index.d.ts",
   "files": [
     "index.ts",
     "index.d.ts"
@@ -43,8 +43,5 @@
     "rollup": "^2.2.0",
     "rollup-plugin-typescript2": "^0.27.0",
     "typescript": "^3.8.3"
-  },
-  "dependencies": {
-    "axios": "^0.19.2"
   }
 }

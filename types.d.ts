@@ -3,16 +3,18 @@ export declare enum State {
     Running = 1,
     Pause = 2,
     Stop = 3,
-    Finish = 4
+    Finish = 4,
+    Error = 5
 }
 export interface Options {
     max?: number;
     interval?: number;
-    cb?: Function;
+    taskCb?: (res: any) => any;
 }
-export interface RequestFn {
+export interface TaskFn {
     (): Promise<any>;
 }
-export interface Request extends RequestFn {
+export declare type Tasks = TaskFn[] | TaskFn;
+export interface Task extends TaskFn {
     priority: number;
 }
