@@ -1,5 +1,6 @@
 import { State, Options, TaskFn, Task, Tasks } from './types';
 import { isPromise } from './utils/isPromise';
+import { wait } from './utils/wait';
 const noop: () => void = function() {};
 
 function createQueue(options: Options) {
@@ -91,11 +92,7 @@ function createQueue(options: Options) {
 				resolveFn(finished);
 			}else {
 				if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
-					await new Promise(r => {
-						setTimeout(() => {
-							r();
-						}, interval);
-					});
+					await wait(interval);
 					if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
 						const nextTask = currentQueue[++currentIndex];
 						
