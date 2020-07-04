@@ -1,5 +1,5 @@
 import { State, Options, TaskFn, Task, Tasks } from './types';
-
+import { isPromise } from './utils/isPromise';
 const noop: () => void = function() {};
 
 function createQueue(options: Options) {
@@ -76,7 +76,7 @@ function createQueue(options: Options) {
 	function excuteTask(task: Task, isLastTask: boolean, resultIndex: number) {
 		const p = task();
 
-		if(p.then === undefined) {
+		if(!isPromise(p)) {
 			throw new Error('every task must return a promise');
 		}
 		p.then(async res => {
