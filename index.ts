@@ -1,223 +1,174 @@
-import axios from 'axios';
-import { State, Options, RequestFn, Request } from './types';
+import { State, Options, TaskFn, Task, Tasks } from './types';
 
 const noop: () => void = function() {};
-const urlReg = /^((https?|ftp|file):\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
 
-// TODO: add more comments
-class Queue {
-	options: Options;
-	interval = 0;
-	max = 1;
-	cb: Function = noop;
-	private _queue: Request [] = [];
-	private _waiting: Request [] = [];
-	private _running: Request [] = [];
-	private _finished: any [] = [];
-	private _promise: Promise<any> = null;
-	private _state: State;
-	private _needSort: boolean;
-	private resolve: (v: any []) => void;
-	private reject: (v: any []) => void;
+function createQueue(options: Options) {
+	const { max = 1, interval = 0, taskCb = noop } = options;
+	const finished = [];
+	let queue: Task[] = [];
+	let currentPromise: Promise<any> = null;
+	let needSort = false;
+	let currentState: State = State.Init;
+	let resolveFn: (v: any []) => void;
+	let rejectFn: (v: any []) => void;
+	let currentIndex = 0;
 
-	/**
-	 * store options to queue
-	 * can be changed in Options method
-	 */
-	constructor(options: Options = {}) {
-		this.options = options;
-		this.init();
+	// 判断传入的配置类型
+	if(typeof max !== 'number' || typeof interval !== 'number' || typeof taskCb !== 'function') {
+		throw new TypeError(`
+			Except max, interval to be a number, taskCb to be a function
+		`);
 	}
 
 	/**
-	 * @description init queue configuration, called in new Queue and Stop() cases
+	 * 添加任务到队列中
+	 * @param tasks			 需要处理的任务
+	 * @param priority   任务优先级，默认为零，数值越大越优先处理
 	 */
-	private init(): void {
-		this.interval = this.options.interval > 0 ? this.options.interval : 0;
-		this.max = this.options.max > 1 ? this.options.max : 1;
-		this.cb = typeof this.options.cb === 'function' ? this.options.cb : noop;
-		this._queue = [];
-		this._waiting = [];
-		this._running = [];
-		this._finished = [];
-		this._promise = null;
-		this.setState(State.Init);
-	}
-
-	/**
-	 * @param {any}    requests 
-	 * @param {number} priority 
-	 * add request to queue
-	 * once add queue, the queue should be sorted again
-	 * Add will recursion array request
-	 */
-	Add(requests: any, priority = 0): Queue {
-		if(requests) {
-			this._needSort = true;
-			if(Array.isArray(requests)) {
-				requests.forEach(request => {
-					this.Add(request, priority);
-				});
+	function add(tasks: Tasks, priority = 0) {
+		if(tasks) {
+			needSort = true;
+			if(Array.isArray(tasks)) {
+				tasks.forEach(task => add(task, priority));
 			}else {
-				this.handleRequest(requests, priority);
+				// 每个任务都是返回promise的函数
+				if(typeof tasks !== 'function') {
+					throw new TypeError(`
+						every task must be a function which return a promise
+					`);
+				}
+				const task = addPriority(tasks, priority);
+
+				queue.push(task);
 			}
 		}
-
-		return this;
 	}
 
-	/**
-	 * two effects:
-	 * 1. transform all requests to function which return a promise
-	 * 2. add priority for every request to sort the queue
-	 */
-	private handleRequest(request: any, priority: number): void {
-		const requestFn = this.generatorRequestFunc(request);
-		const excutedRequestFn = this.addPriority(requestFn, priority);
-
-		this._queue.push(excutedRequestFn);
-		this._waiting.push(excutedRequestFn);
-	}
-
-	private generatorRequestFunc(request): RequestFn {
-		if(typeof request !== 'function') {
-			const isUrl = (url: string): boolean => urlReg.test(url);
-			const getRequestFn = (config): RequestFn => () => axios(config);
-			const defaultRequestFn = request => () => request;
-
-			if(typeof request === 'string' && isUrl(request)) {
-				const config = {
-					url: request,
-					method: 'get'
-				};
-
-				return getRequestFn(config);
-			}else if(typeof request === 'object' && request.url) {
-				return getRequestFn(request);
-			}else {
-				return defaultRequestFn(request);
-			}
-		}else {
-			return request;
-		}
-	}
-
-	private addPriority(requestFn: RequestFn, priority: number): Request {
+	// 给每个任务添加优先级
+	function addPriority(tasks: TaskFn, priority): Task {
 		priority = typeof priority === 'number' ? priority : 0;
-		const request = requestFn as Request;
+		const task = tasks as Task;
 
-		request.priority = priority;
-		return request;
+		task.priority = priority;
+		return task;
 	}
 
-	/**
-	 * get queue to run, genertor a final promise
-	 * 
-	 */
-	Run(): void {
-		if(this._state !== State.Running && (this._promise === null || this._state === State.Finish)) {
-			this._promise = new Promise((resolve, reject) => {
-				this.resolve = resolve;
-				this.reject = reject;
-				this.handleQueue();
+	// 执行队列
+	function run() {
+		if(currentState !== State.Running && (currentPromise === null || currentState === State.Finish)) {
+			currentPromise = new Promise((resolve, reject) => {
+				resolveFn = resolve;
+				rejectFn = reject;
+				handleQueue();
 			});
 		}
 	}
 
-	private handleQueue(): void {
-		const waits = this._waiting.length;
-		const requestNum = this.max <= waits ? this.max : waits;
-
-		if(waits) {
-			this.setState(State.Running);
-			this._needSort && this.sortWaiting();
-			this._running.push(...this._waiting.splice(0, requestNum));
-			this.excuteTask();
-		}
+	// 处理队列中的数据
+	function handleQueue() {
+		needSort && sortQueue();
+		setState(State.Running);
+		runTasks();
 	}
 
-	/**
-	 * @description sort waiting requests by priority, worked after by calling Add()
-	 */
-	private sortWaiting(): void {
-		this._waiting.sort((a, b) => b.priority - a.priority);
-		this._needSort = false;
+	// 给任务排序
+	function sortQueue() {
+		queue.sort((a, b) => b.priority - a.priority);
+		needSort = false;
 	}
 
-	private excuteTask(): void {
-		const requests: Promise<any> [] = [];
+	function excuteTask(task: Task, isLastTask: boolean, resultIndex: number) {
+		const p = task();
 
-		for(const request of this._running) {
-			requests.push(request());
+		if(p.then === undefined) {
+			throw new Error(`
+				every task must return a promise
+			`);
 		}
-
-		const rlength = requests.length;
-		
-		Promise.all(requests).then(result => {
-			this._finished.push(...result);
-			this._running.splice(0, rlength);
-			this.cb(result, this);
-			if(this._state === State.Pause) {
-				this.resolve(this._finished);
+		p.then(async res => {
+			finished[resultIndex] = res;
+			taskCb(res);
+			if(currentState === State.Pause) {
+				resolveFn(finished);
 				return;
 			}
-			if(this._waiting.length) {
-				setTimeout(() => {
-					this.handleQueue();
-				}, this.interval);
+			if(isLastTask) {
+				setState(State.Finish);
+				resolveFn(finished);
 			}else {
-				this.setState(State.Finish);
-				this.resolve(this._finished);
+				if(currentIndex !== queue.length - 1 && currentState === State.Running) {
+					await new Promise(r => {
+						setTimeout(() => {
+							r();
+						}, interval);
+					});
+					if(currentIndex !== queue.length - 1 && currentState === State.Running) {
+						const nextTask = queue[++currentIndex];
+						
+						excuteTask(nextTask, currentIndex === queue.length - 1, currentIndex);
+					}
+				}
 			}
 		}).catch(err => {
-			this.reject(err);
+			setState(State.Error);
+			rejectFn(err);
 		});
 	}
 
-	Stop(): void {
-		this.setState(State.Stop);
-		this.init();
-	}
+	function runTasks() {
+		const totalTasks = queue.length;
 
-	// pause queue
-	Pause(): void {
-		if(this._state === State.Running) {
-			this.setState(State.Pause);
+		for(let i = currentIndex ? currentIndex : 0; i < (max >= totalTasks ? totalTasks : max); i++) {
+			currentIndex = i;
+			// 处理每一个任务
+			excuteTask(queue[currentIndex], currentIndex === totalTasks - 1, i);
 		}
 	}
 
-	// make queue run only the queue state is pause
-	Continue(): void {
-		if(this._state === State.Pause) {
-			this._promise = new Promise((resolve, reject) => {
-				this.resolve = resolve;
-				this.reject = reject;
+	function setState(nextState: State): void {
+		currentState = nextState;
+	}
+
+	function result(): Promise<any> {
+		if(currentPromise === null) {
+			throw new Error(`
+				should add task and run the queue
+			`);
+		}
+		return currentPromise;
+	}
+
+	function pause() {
+		if(currentState === State.Running) {
+			setState(State.Pause);
+		}
+	}
+
+	function resume() {
+		if(currentState === State.Pause) {
+			currentPromise = new Promise((resolve, reject) => {
+				resolveFn = resolve;
+				rejectFn = reject;
 			});
-			this.handleQueue();
+			runTasks();
 		}
 	}
 
-	// change the state of queue 
-	private setState(state: State): void {
-		this._state = state;
+	function clear() {
+		queue = [];
+		currentPromise = Promise.resolve([]);
 	}
 
-	/**
-	 * return the final promise
-	 * @return {Promise} 
-	 */
-	Result(): Promise<any> {
-		return this._promise === null ? Promise.resolve([]) : this._promise;
-	}
-
-	/**
-	 * set options dynamically
-	 */
-	Options(options: Options): void {
-		this.interval = options.interval > 0 ? (this.options.interval = options.interval) : this.interval;
-		this.max = options.max > 1 ?  (this.options.max = options.max) : this.max;
-		this.cb = typeof options.cb === 'function' ? (this.options.cb = options.cb) : this.cb;
-	}
+	return {
+		run,
+		add,
+		result,
+		pause,
+		resume,
+		clear
+	};
 }
 
-export default Queue;
+export {
+	createQueue
+};
