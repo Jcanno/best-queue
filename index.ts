@@ -4,8 +4,8 @@ import { wait } from './utils/wait';
 const noop: () => void = function() {};
 
 function createQueue(options: Options) {
-	const { max = 1, interval = 0, taskCb = noop } = options;
 	const finished = [];
+	let { max = 1, interval = 0, taskCb = noop } = options;
 	let needSort = false;
 	let currentQueue: Task[] = [];
 	let currentPromise: Promise<any> = null;
@@ -19,6 +19,10 @@ function createQueue(options: Options) {
 		throw new TypeError('Except max, interval to be a number, taskCb to be a function');
 	}
 
+	if(max < 1 || interval < 0) {
+		throw new Error('Except max min to 1, interval min to 0');
+	}
+	max = max >> 0;
 	/**
 	 * 添加任务到队列中
 	 * @param tasks			 需要处理的任务
