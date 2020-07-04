@@ -1,9 +1,9 @@
 export enum State {
-	Init,
-	Running,
-	Pause,
-	Finish,
-	Error
+	Init = 'init',
+	Running = 'running',
+	Pause = 'pause',
+	Finish = 'finish',
+	Error = 'error'
 }
 
 export interface Options {
@@ -20,4 +20,14 @@ export type Tasks = TaskFn[] | TaskFn
 
 export interface Task extends TaskFn {
 	priority: number;
+}
+
+export interface Queue {
+	getState(): State;
+	add(task: Tasks, priority: number): void;
+	run(): void;
+	result(): Promise<any>;
+	pause(): void;
+	resume(): void;
+	clear(): void;
 }

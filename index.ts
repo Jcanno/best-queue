@@ -1,9 +1,9 @@
-import { State, Options, TaskFn, Task, Tasks } from './types';
+import { Queue, State, Options, TaskFn, Task, Tasks } from './types';
 import { isPromise } from './utils/isPromise';
 import { wait } from './utils/wait';
 const noop: () => void = function() {};
 
-function createQueue(options: Options) {
+function createQueue(options: Options): Queue {
 	const finished = [];
 	let { max = 1, interval = 0, taskCb = noop } = options;
 	let needSort = false;
@@ -14,19 +14,23 @@ function createQueue(options: Options) {
 	let resolveFn: (v: any []) => void;
 	let rejectFn: (v: any []) => void;
 
-	// 判断传入的配置类型
+	// Inspect type of max, interval, taskCb
 	if(typeof max !== 'number' || typeof interval !== 'number' || typeof taskCb !== 'function') {
 		throw new TypeError('Except max, interval to be a number, taskCb to be a function');
 	}
 
+	// Max should be equal or greater than 1, and interval should't less than 0
 	if(max < 1 || interval < 0) {
 		throw new Error('Except max min to 1, interval min to 0');
 	}
+
+	// Make max to an integer, same effect with parseInt()
 	max = max >> 0;
+
 	/**
-	 * 添加任务到队列中
-	 * @param tasks			 需要处理的任务
-	 * @param priority   任务优先级，默认为零，数值越大越优先处理
+	 * Add task to queue
+	 * @param tasks			 Task that need to handle
+	 * @param priority   Default to 0, the bigger priority of task, the more preferential to handle
 	 */
 	function add(tasks: Tasks, priority = 0) {
 		if(tasks) {
@@ -34,7 +38,6 @@ function createQueue(options: Options) {
 			if(Array.isArray(tasks)) {
 				tasks.forEach(task => add(task, priority));
 			}else {
-				// 每个任务都是返回promise的函数
 				if(typeof tasks !== 'function') {
 					throw new TypeError('every task must be a function which return a promise');
 				}
@@ -45,7 +48,7 @@ function createQueue(options: Options) {
 		}
 	}
 
-	// 给每个任务添加优先级
+	// Add priority to every task
 	function addPriority(tasks: TaskFn, priority): Task {
 		priority = typeof priority === 'number' ? priority : 0;
 		const task = tasks as Task;
@@ -54,7 +57,7 @@ function createQueue(options: Options) {
 		return task;
 	}
 
-	// 执行队列
+	// Run the queue
 	function run() {
 		if(currentState !== State.Running && (currentPromise === null || currentState === State.Finish)) {
 			currentPromise = new Promise((resolve, reject) => {
@@ -65,21 +68,35 @@ function createQueue(options: Options) {
 		}
 	}
 
-	// 处理队列中的数据
+	// Sort queue and start to run tasks
 	function handleQueue() {
 		needSort && sortQueue();
-		setState(State.Running);
 		runTasks();
 	}
 
-	// 给任务排序
+	// Sort queue by the priority of every task
 	function sortQueue() {
 		currentQueue.sort((a, b) => b.priority - a.priority);
 		needSort = false;
 	}
 
+	/**
+	 * Excute single task, when a task done, put the result of task into finished
+	 * run taskCb of options(taskCb may pause the queue, it's just decided by user), 
+	 * so after that if state of queue is Paused, just resolve currentPromise, 
+	 * if not and isLastTask is true(means queue is over), change state and resolve 
+	 * currentPromise, if isLastTask is false, check currentIndex and currentState, 
+	 * after waiting the inverval, check currentIndex and currentState again(we don't 
+	 * know if the queue is over ater wait), then find next task by currentIndex, excute
+	 * next task in a loop
+	 * 
+	 * @param task Current running task 
+	 * @param isLastTask Use isLastTask flag to make queue resolve
+	 * when isLastTask is true, it means all tasks done
+	 * @param resultIndex Make the order of finished be same to the order of queue
+	 */
 	function excuteTask(task: Task, isLastTask: boolean, resultIndex: number) {
-		const p = task();
+		const p: Promise<any> = task();
 
 		if(!isPromise(p)) {
 			throw new Error('every task must return a promise');
@@ -87,10 +104,12 @@ function createQueue(options: Options) {
 		p.then(async res => {
 			finished[resultIndex] = res;
 			taskCb(res);
+
 			if(currentState === State.Pause) {
 				resolveFn(finished);
 				return;
 			}
+
 			if(isLastTask) {
 				setState(State.Finish);
 				resolveFn(finished);
@@ -110,20 +129,25 @@ function createQueue(options: Options) {
 		});
 	}
 
+	// Called first run and resume cases
 	function runTasks() {
 		const totalTasks = currentQueue.length;
 
-		for(let i = currentIndex ? currentIndex : 0; i < (max >= totalTasks ? totalTasks : max); i++) {
+		setState(State.Running);
+		for(let i = currentIndex; i < (max >= totalTasks ? totalTasks : max); i++) {
 			currentIndex = i;
-			// 处理每一个任务
 			excuteTask(currentQueue[currentIndex], currentIndex === totalTasks - 1, i);
 		}
 	}
 
+	// change state of queue
 	function setState(nextState: State): void {
 		currentState = nextState;
 	}
 
+	/**
+	 * @returns {Promise} 
+	 */
 	function result(): Promise<any> {
 		if(currentPromise === null) {
 			throw new Error('should add task and run the currentQueue');
@@ -131,12 +155,14 @@ function createQueue(options: Options) {
 		return currentPromise;
 	}
 
+	// Pause the running queue
 	function pause() {
 		if(currentState === State.Running) {
 			setState(State.Pause);
 		}
 	}
 
+	// Get paused queue to resume
 	function resume() {
 		if(currentState === State.Pause) {
 			currentPromise = new Promise((resolve, reject) => {
@@ -147,9 +173,16 @@ function createQueue(options: Options) {
 		}
 	}
 
+	// Clear queue(can called when queue is state of error)
+	// Make sure queue is not running
 	function clear() {
 		currentQueue = [];
-		currentPromise = Promise.resolve([]);
+		currentPromise = null;
+		setState(State.Init);
+	}
+
+	function getState(): State {
+		return currentState;
 	}
 
 	const queue = {
@@ -158,7 +191,8 @@ function createQueue(options: Options) {
 		result,
 		pause,
 		resume,
-		clear
+		clear,
+		getState
 	};
 
 	return queue;
