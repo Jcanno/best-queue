@@ -5,12 +5,12 @@ export default {
 	output: {
 		file: 'dist/index.js',
 		format: 'umd',
-		name: 'Queue',
+		name: 'BestQueue'
 	},
 	plugins: [
 		typescript({
 			tsconfig: 'tsconfig.json',
-			useTsconfigDeclarationDir: true,
+			useTsconfigDeclarationDir: true
 		})
 	]
 };

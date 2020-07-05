@@ -1,322 +1,265 @@
-# **Queue-Request**
+# **Best-Queue**
 
-[English](https://github.com/Jcanno/queue-request)|简体中文
+[English](https://github.com/Jcanno/best-queue)|简体中文
 
 ## 介绍
-`queue-request`能处理并发请求。队列由多批请求组成，每批请求中至少包含一个请求，当一批请求完成，下一批请求将会继续执行。
-
-## 特性
-- 支持链式添加请求
-- 支持设置请求优先级
-- 支持每批请求回调
-- 支持队列暂停、继续和停止
-- 支持动态修改配置
+`best-queue`能让你用队列控制异步任务
 
 ## 安装
 在命令函输入以下代码进行安装:
 
 ```js
-npm i queue-request
+npm i best-queue
 ```
 
 ## 用法
 通过`ES6 模块`导入:
 ```js
-import Queue from 'queue-request';
+import { createQueue } from 'best-queue';
 ```
 
 `Node`环境下导入:
 ```js
-const Queue = require('queue-request');
-```
-
-构造器:
-```js
-new Queue(options);
-```
-
-## **例子**
-```js
-import Queue from 'queue-request';
-import axios from 'axios';
-
-let queue = new Queue({
-	max: 1,
-	interval: 1 * 1000,
-	// 每批请求完成时的回调
-	cb: (result, queue) => {
-		console.log('a batch of requests done')
-	}
-})
-
-// 添加请求到队列中
-queue.Add('https://www.npmjs.com')
-     .Add({
-          url: 'https://www.webpackjs.com/',
-          method: 'get'
-     })
-
-// 封装请求函数
-function getVuejs() {
-	return axios({
-		url: 'https://cn.vuejs.org'
-	})
-}
-
-function getReactjs() {
-	return axios({
-		url: 'https://reactjs.org'
-	})
-}
-// 添加数组请求
-queue.Add([
-	getVuejs,
-	getReactjs
-])
-// 开始处理请求
-queue.Run()
-// 获取请求结果
-queue.Result()
-     .then(result => {
-         console.log(result)
-     })
-     .catch(err => {
-         console.log(err)
-     })
+const { createQueue } = require('best-queue');
 ```
 
 ## **API**
+- createQueue(options):
 
-- options:
+  - **description**: 通过配置创建队列
 
-	- **描述**:  用于初始化 `Queue` 的属性
+  - **type**: `Function(Options): Queue`
 
-	- **类型**: `Object`
+  - options:
 
-	- **默认值**: `{}`
+    - **描述**:  用于创建队列的配置项
 
-	- **用法**:
+    - **类型**: `Object`
 
-	```js
-	let queue = new Queue({
-		max: 1,
-		interval: 1 * 1000,
-		// 每批请求完成时的回调
-		cb: (result, queue) => {
-			console.log('a batch of requests done')
-		}
-	})
-	```
+    - **默认值**: `{max: 1, interval: 0, taskCb: function (){}}`
 
-- options.max:
+    - **用法**:
 
-	- **描述**:  每批请求中的最大请求量，默认并最小为1
+    ```js
+    import { createQueue } from 'best-queue';
 
-	- **类型**: `Number`
+    let queue = createQueue({
+      max: 1,
+      interval: 1 * 1000,
+      // 每个异步任务完成时的回调
+      taskCb: result => {
+        console.log('one task done')
+      }
+    })
+    ```
 
-	- **默认值**: `1`
+  - options.max:
 
-- options.interval:
+    - **描述**: 同时间最大并发量，默认且最小为1
 
-	- **描述**:  每批请求之间的间隔(毫秒)
+    - **类型**: `Number`
 
-	- **类型**: `Number`
+    - **默认值**: `1`
 
-	- **默认值**: `0`
+  - options.interval:
 
-- options.cb:
+    - **描述**:  每个异步任务之间的间隔(毫秒)，默认为0
 
-	- **描述**:  每批请求完成时的回调
+    - **类型**: `Number`
 
-	- **类型**: `Function`
+    - **默认值**: `0`
 
-	- **默认值**: `() => {}`
+  - options.taskCb:
 
-- Add(requests, priority):
+    - **描述**:  每个异步任务完成时的回调
 
-	- **描述**:  添加请求到队列中
+    - **类型**: `Function`
 
-	- **类型**: `requests`: any, `priority`: Number
+    - **默认值**: `function() {}`
 
-	- **用法**:
+- add(tasks, priority):
 
-	```js
-	let queue = new Queue({
-		max: 1,
-		interval: 1 * 1000,
-		// 每批请求完成时的回调
-		cb: (result, queue) => {
-			console.log('a batch of requests done')
-		}
-	})
+  - **描述**: 添加异步任务到队列中
 
-	// 添加url请求, 默认get
-	queue.Add('https://www.webpackjs.com/', 1)
-	// 添加数组url请求
-	queue.Add([
-		'https://cn.vuejs.org',
-		'https://reactjs.org',
-	], 5)
-	// 链式添加url请求
-	// https://www.npmjs.com 将会最先被执行，它具有最高优先级, priority默认为0
-	queue.Add('https://www.npmjs.com', 6)
-	     .Add('https://github.com')
-	```
+  - **类型**: `tasks`: Function[]: Promise | Function: Promise, `priority`: Number
 
-- Run() 
+  - **用法**:
 
-	- **描述**:  `Run` 将会执行整个队列任务
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // 每个异步任务完成时的回调
+    taskCb: result => {
+      console.log('one task done')
+    }
+  })
 
-	- **类型**: `Function`
+  // 添加异步任务, 优先级默认为0
+  queue.add(asyncTask, 1)
+  // 添加数组异步任务
+  queue.add([
+    asyncTask,
+    asyncTask,
+  ], 5)
+  ```
 
-	- **用法**:
+- run() 
 
-	```js
-	let queue = new Queue({
-		max: 1,
-		interval: 1 * 1000,
-		// 每批请求完成时的回调
-		cb: (result, queue) => {
-			console.log('a batch of requests done')
-		}
-	})
+  - **描述**:  执行整个队列任务
 
-	// 添加url请求, 默认get
-	queue.Add('https://www.webpackjs.com/')
-	queue.Run()
-	```
+  - **类型**: `Function`
 
-- Result()
+  - **用法**:
 
-	- **描述**:  `Result` 返回一个`Promise` 并可以获取所有请求的结果
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // 每个异步任务完成时的回调
+    taskCb: result => {
+      console.log('one task done')
+    }
+  })
 
-	- **类型**: `Function`
+  queue.add(asyncTask)
+  queue.run()
+  ```
 
-	- **用法**:
+- result()
 
-	```js
-	let queue = new Queue({
-		max: 1,
-		interval: 1 * 1000,
-		// 每批请求完成时的回调
-		cb: (result, queue) => {
-			console.log('a batch of requests done')
-		}
-	})
+  - **描述**: `result` 将返回一个`Promise` 并可以获取异步任务的结果
 
-	// 添加url请求, 默认get
-	queue.Add('https://www.webpackjs.com/')
-	queue.Run()
-	queue.Result().then(result => {
-		console.log(result)
-	})
-	```
+  - **类型**: `Function`
 
-- Pause()
+  - **用法**:
 
-	- **描述**:  暂停队列, 此时的`Result`方法会返回当前已完成请求的结果
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // 每个异步任务完成时的回调
+    taskCb: result => {
+      console.log('one task done')
+    }
+  })
 
-	- **类型**: `Function`
+  // 添加异步任务
+  queue.add(asyncTask)
+  queue.run()
+  queue.result().then(result => {
+    console.log(result)
+  })
+  ```
 
-	- **用法**:
+- pause()
 
-	```js
-	let queue = new Queue({
-		max: 1,
-		interval: 1 * 1000,
-		// 每批请求完成时的回调
-		cb: (result, queue) => {
-			console.log('a batch of requests done')
-			// 队列在请求https://www.webpackjs.com后暂停
-			if(result[0].config.url === 'https://www.webpackjs.com') {
-				queue.Pause()
-			}
-		}
-	})
+  - **描述**: 暂停队列, 此时的`result`方法会返回当前已完成任务的结果
 
-	// 添加url请求, 默认get
-	queue.Add('https://www.webpackjs.com')
-	// 添加数组url请求
-	queue.Add([
-		'https://cn.vuejs.org',
-		'https://reactjs.org',
-	])
-	queue.Run()
-	queue.Result().then(result => {
-		// 请求队列暂停
-		// 在这个案例中，会返回第一批请求的结果
-		console.log(result)
-	})
-	```
+  - **类型**: `Function`
 
-- Continue()
+  - **用法**:
 
-	- **描述**: 继续执行队列，此时需要再次调用`Result`方法来获取所有请求的结果
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // 每个异步任务完成时的回调
+    taskCb: result => {
+      console.log('one task done')
+      // 第一份任务完成后队列将暂停
+      queue.pause()
+    }
+  })
 
-	- **类型**: `Function`
+  // 添加异步任务
+  queue.add(asyncTask)
+  // 添加数组异步任务
+  queue.add([
+    asyncTask,
+    asyncTask,
+  ])
+  queue.run()
+  queue.result().then(result => {
+    // 队列暂停
+    // 在这个例子中 result 为第一个异步任务的结果
+    console.log(result)
+  })
+  ```
 
-	- **用法**:
+- resume()
 
-	```js
-	let queue = new Queue({
-		max: 1,
-		interval: 1 * 1000,
-		// 每批请求完成时的回调
-		cb: (result, queue) => {
-			console.log('a batch of requests done')
-			// 队列在请求https://www.webpackjs.com后暂停
-			if(result[0].config.url === 'https://www.webpackjs.com') {
-				queue.Pause()
-			}
-		}
-	})
+  - **描述**: 继续执行队列，此时需要再次调用`result`方法来获取所有任务的结果
 
-	// 添加url请求, 默认get
-	queue.Add('https://www.webpackjs.com')
-	// 添加数组url请求
-	queue.Add([
-		'https://cn.vuejs.org',
-		'https://reactjs.org',
-	])
+  - **类型**: `Function`
 
-	queue.Run()
-	queue.Result().then(res => {
-		// 队列将会继续运行
-		queue.Continue()
-		queue.Result().then(result => {
-			console.log(result)
-		})
-	})
-	```
+  - **用法**:
 
-- Stop()
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // 每个异步任务完成时的回调
+    taskCb: result => {
+      console.log('one task done')
+      // 第一份任务完成后队列将暂停
+      queue.pause()
+    }
+  })
 
-	- **描述**: 停止并且重新初始化整个队列，所有请求的返回值会被清空
+  // 添加异步任务
+  queue.add(asyncTask)
+  // 添加数组异步任务
+  queue.add([
+    asyncTask,
+    asyncTask,
+  ])
+  queue.run()
+  queue.result().then(result => {
+    // 队列将继续执行
+    queue.resume()
+    queue.result().then(result => {
+      console.log(result)
+    })
+  })
+  ```
 
-	- **类型**: `Function`
+- clear()
 
-- Options(options)
+  - **描述**: 清空队列，如果队列在执行时被调用，将会立刻结束执行并返回当前结果
 
-	- **description**: 动态设置options
+  - **类型**: `Function`
 
-	- **type**: `Object`
+- getState()
 
-	- **usage**: 
+  - **描述**: 获取当前队列的状态: init, running, error, finish, pause
 
-	```js
-	let queue = new Queue({
-		max: 1,
-		interval: 1 * 1000,
-		// 每批请求完成时的回调
-		cb: (result, queue) => {
-			console.log('a batch of requests done')
-			// 队列配置会被动态设置
-			queue.Options({
-				max: 2
-			})
-		}
-	})
-	```
+  - **类型**: `Function: String`
+
+  - **用法**: 
+
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // 每个异步任务完成时的回调
+    taskCb: result => {
+      console.log('one task done')
+      // 第一份任务完成后队列将暂停
+      queue.pause()
+    }
+  })
+
+  // 添加异步任务
+  queue.add(asyncTask)
+  // 添加数组异步任务
+  queue.add([
+    asyncTask,
+    asyncTask,
+  ])
+  queue.run()
+  queue.getState()  // running
+  ```
 
 
 ## Lisence
