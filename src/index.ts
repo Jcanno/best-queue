@@ -59,7 +59,7 @@ function createQueue(options: Options): Queue {
 
 	// Run the queue
 	function run() {
-		if(currentState !== State.Running && (currentPromise === null || currentState === State.Finish)) {
+		if(currentState !== State.Running && currentPromise === null) {
 			currentPromise = new Promise((resolve, reject) => {
 				resolveFn = resolve;
 				rejectFn = reject;
@@ -173,7 +173,7 @@ function createQueue(options: Options): Queue {
 		}
 	}
 
-	// Clear queue(can called when queue is state of error)
+	// Clear queue(can called when queue is error of state)
 	// Make sure queue is not running
 	function clear() {
 		currentQueue = [];
@@ -181,6 +181,9 @@ function createQueue(options: Options): Queue {
 		setState(State.Init);
 	}
 
+	/**
+	 * @returns {State} get the state of queue
+	 */
 	function getState(): State {
 		return currentState;
 	}

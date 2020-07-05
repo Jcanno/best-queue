@@ -1,6 +1,7 @@
 {
 	"compilerOptions": {
 		"lib": ["DOM", "ES2015"],
-		"declaration": true
+		"declaration": true,
+		"declarationDir": "./types"
 	}
 }

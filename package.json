@@ -1,8 +1,8 @@
 {
-  "name": "queue-request",
-  "version": "2.2.2",
-  "description": "Use queue to handle request task, base on promise",
-  "main": "index.js",
+  "name": "best-request",
+  "version": "3.0.0",
+  "description": "Make async task in a queue",
+  "main": "dist/index.js",
   "scripts": {
     "release": "npm run build && npm publish",
     "release:beta": "npm run build && npm publish --tag=beta",
@@ -11,27 +11,36 @@
     "test": "npm run build && mocha",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
-  "types": "index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
-    "index.ts",
-    "index.d.ts"
-  ],
+    "dist",
+		"types",
+		"src"
+	],
+	"repository": "git://github.com/Jcanno/best-queue",
+	"publishConfig": { "registry": "git://github.com/Jcanno/best-queue" },
   "keywords": [
-    "request",
+		"enqueue",
+		"concurrency",
+		"task",
+		"async",
+		"request",
+		"throttle",
+		"limit",
     "request-queue",
     "promise",
     "promise-queue",
-    "axios",
-    "axios-queue",
+		"axios",
+		"queue",
     "queue-request",
     "queue-promise"
   ],
   "author": "Jacano",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Jcanno/queue-request/issues"
+    "url": "https://github.com/Jcanno/best-queue/issues"
   },
-  "homepage": "https://github.com/Jcanno/queue-request#readme",
+  "homepage": "https://github.com/Jcanno/best-queue#readme",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
