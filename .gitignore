@@ -5,3 +5,4 @@ queue-request.js
 dist
 test.js
 types
+coverage

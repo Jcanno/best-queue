@@ -4,7 +4,10 @@ import { wait } from './utils/wait';
 const noop: () => void = function() {};
 
 function createQueue(options: Options): Queue {
-	const finished = [];
+	if(options === undefined) {
+		throw new Error('options is required');
+	}
+	let finished = [];
 	let { max = 1, interval = 0, taskCb = noop } = options;
 	let needSort = false;
 	let currentQueue: Task[] = [];
@@ -80,6 +83,17 @@ function createQueue(options: Options): Queue {
 		needSort = false;
 	}
 
+	// Called first run and resume cases
+	function runTasks() {
+		const totalTasks = currentQueue.length;
+
+		setState(State.Running);
+		for(let i = currentIndex; i < (max >= totalTasks ? totalTasks : max); i++) {
+			currentIndex = i;
+			excuteTask(currentQueue[currentIndex], currentIndex === totalTasks - 1, i);
+		}
+	}
+
 	/**
 	 * Excute single task, when a task done, put the result of task into finished
 	 * run taskCb of options(taskCb may pause the queue, it's just decided by user), 
@@ -129,22 +143,12 @@ function createQueue(options: Options): Queue {
 		});
 	}
 
-	// Called first run and resume cases
-	function runTasks() {
-		const totalTasks = currentQueue.length;
-
-		setState(State.Running);
-		for(let i = currentIndex; i < (max >= totalTasks ? totalTasks : max); i++) {
-			currentIndex = i;
-			excuteTask(currentQueue[currentIndex], currentIndex === totalTasks - 1, i);
-		}
-	}
-
 	// change state of queue
 	function setState(nextState: State): void {
 		currentState = nextState;
 	}
 
+	// TODO: can add params to result, just start queue
 	/**
 	 * @returns {Promise} 
 	 */
@@ -176,8 +180,12 @@ function createQueue(options: Options): Queue {
 	// Clear queue(can called when queue is error of state)
 	// Make sure queue is not running
 	function clear() {
+		if(currentState === State.Running || currentState ===  State.Pause) {
+			resolveFn(finished);
+		}
 		currentQueue = [];
-		currentPromise = null;
+		currentIndex = 0;
+		finished = [];
 		setState(State.Init);
 	}
 

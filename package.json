@@ -4,34 +4,36 @@
   "description": "Make async task in a queue",
   "main": "dist/index.js",
   "scripts": {
+    "build": "rollup -c",
+    "test": "jest --coverage",
     "release": "npm run build && npm publish",
     "release:beta": "npm run build && npm publish --tag=beta",
-    "build": "rollup -c",
     "commit": "git-cz",
-    "test": "npm run build && mocha",
     "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "types": "types/index.d.ts",
   "files": [
     "dist",
-		"types",
-		"src"
-	],
-	"repository": "git://github.com/Jcanno/best-queue",
-	"publishConfig": { "registry": "git://github.com/Jcanno/best-queue" },
+    "types",
+    "src"
+  ],
+  "repository": "git://github.com/Jcanno/best-queue",
+  "publishConfig": {
+    "registry": "git://github.com/Jcanno/best-queue"
+  },
   "keywords": [
-		"enqueue",
-		"concurrency",
-		"task",
-		"async",
-		"request",
-		"throttle",
-		"limit",
+    "enqueue",
+    "concurrency",
+    "task",
+    "async",
+    "request",
+    "throttle",
+    "limit",
     "request-queue",
     "promise",
     "promise-queue",
-		"axios",
-		"queue",
+    "axios",
+    "queue",
     "queue-request",
     "queue-promise"
   ],
@@ -42,15 +44,30 @@
   },
   "homepage": "https://github.com/Jcanno/best-queue#readme",
   "devDependencies": {
+    "@types/jest": "^26.0.3",
+    "@types/node": "^14.0.14",
     "@typescript-eslint/eslint-plugin": "^2.27.0",
     "@typescript-eslint/parser": "^2.27.0",
     "commitizen": "^4.0.3",
     "conventional-changelog-cli": "^2.0.31",
     "eslint": "^6.8.0",
     "eslint-config-scales": "^0.2.0",
-    "mocha": "^7.1.1",
+    "jest": "^26.1.0",
     "rollup": "^2.2.0",
     "rollup-plugin-typescript2": "^0.27.0",
+    "ts-jest": "^26.1.1",
     "typescript": "^3.8.3"
+  },
+  "jest": {
+    "testRegex": "(/test/.*\\.spec\\.[tj]s)$",
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "jsx",
+      "ts",
+      "tsx",
+      "node"
+    ],
+    "preset": "ts-jest"
   }
 }

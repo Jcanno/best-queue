@@ -24,7 +24,7 @@ export interface Task extends TaskFn {
 
 export interface Queue {
 	getState(): State;
-	add(task: Tasks, priority: number): void;
+	add(task: Tasks, priority?: number): void;
 	run(): void;
 	result(): Promise<any>;
 	pause(): void;
