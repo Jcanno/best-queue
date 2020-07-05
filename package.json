@@ -17,10 +17,6 @@
     "types",
     "src"
   ],
-  "repository": "git://github.com/Jcanno/best-queue",
-  "publishConfig": {
-    "registry": "git://github.com/Jcanno/best-queue"
-  },
   "keywords": [
     "enqueue",
     "concurrency",
