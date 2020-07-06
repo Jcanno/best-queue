@@ -6,6 +6,7 @@ English|[简体中文](https://github.com/Jcanno/best-queue/blob/master/README-C
 
 `best-queue` let you control async tasks in a queue.
 
+![](https://hawksights.obs.cn-east-2.myhuaweicloud.com/ceshi/1593997290864.png)
 ## Install
 type in the command line to install with:
 
