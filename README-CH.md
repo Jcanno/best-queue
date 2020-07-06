@@ -5,6 +5,7 @@
 ## 介绍
 `best-queue`能让你用队列控制异步任务
 
+![](https://hawksights.obs.cn-east-2.myhuaweicloud.com/ceshi/1593997266220.png)
 ## 安装
 在命令函输入以下代码进行安装:
 
