@@ -120,6 +120,7 @@ function createQueue(options: Options): Queue {
 			taskCb(res);
 
 			if(currentState === State.Pause) {
+				isLastTask && setState(State.Finish);
 				resolveFn(finished);
 				return;
 			}
@@ -167,8 +168,10 @@ function createQueue(options: Options): Queue {
 	}
 
 	// Get paused queue to resume
+	// Should start next of currentIndex
 	function resume() {
 		if(currentState === State.Pause) {
+			currentIndex++;
 			currentPromise = new Promise((resolve, reject) => {
 				resolveFn = resolve;
 				rejectFn = reject;
