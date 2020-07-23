@@ -87,11 +87,12 @@ function createQueue(options: Options): Queue {
 	function runTasks() {
 		const totalTasks = currentQueue.length;
 		const restTasks = totalTasks - currentIndex;
+		const startIndex = currentIndex;
 
 		setState(State.Running);
 		
 		for(let i = 0; i < (max >= restTasks ? restTasks : max); i++) {
-			currentIndex += i;
+			currentIndex = startIndex + i;
 			excuteTask(currentQueue[currentIndex], currentIndex);
 		}
 	}
