@@ -86,11 +86,13 @@ function createQueue(options: Options): Queue {
 	// Called first run and resume cases
 	function runTasks() {
 		const totalTasks = currentQueue.length;
+		const restTasks = totalTasks - currentIndex;
 
 		setState(State.Running);
-		for(let i = currentIndex; i < (max >= totalTasks ? totalTasks : max); i++) {
-			currentIndex = i;
-			excuteTask(currentQueue[currentIndex], currentIndex === totalTasks - 1, i);
+		
+		for(let i = 0; i < (max >= restTasks ? restTasks : max); i++) {
+			currentIndex += i;
+			excuteTask(currentQueue[currentIndex], currentIndex);
 		}
 	}
 
@@ -105,12 +107,11 @@ function createQueue(options: Options): Queue {
 	 * next task in a loop
 	 * 
 	 * @param task Current running task 
-	 * @param isLastTask Use isLastTask flag to make queue resolve
-	 * when isLastTask is true, it means all tasks done
 	 * @param resultIndex Make the order of finished be same to the order of queue
 	 */
-	function excuteTask(task: Task, isLastTask: boolean, resultIndex: number) {
+	function excuteTask(task: Task, resultIndex: number) {
 		const p: Promise<any> = task();
+		const isLastTask = resultIndex === currentQueue.length - 1;
 
 		if(!isPromise(p)) {
 			throw new Error('every task must return a promise');
@@ -118,7 +119,6 @@ function createQueue(options: Options): Queue {
 		p.then(async res => {
 			finished[resultIndex] = res;
 			taskCb(res);
-
 			if(currentState === State.Pause) {
 				isLastTask && setState(State.Finish);
 				resolveFn(finished);
@@ -134,7 +134,7 @@ function createQueue(options: Options): Queue {
 					if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
 						const nextTask = currentQueue[++currentIndex];
 						
-						excuteTask(nextTask, currentIndex === currentQueue.length - 1, currentIndex);
+						excuteTask(nextTask, currentIndex);
 					}
 				}
 			}
@@ -175,8 +175,8 @@ function createQueue(options: Options): Queue {
 			currentPromise = new Promise((resolve, reject) => {
 				resolveFn = resolve;
 				rejectFn = reject;
+				runTasks();
 			});
-			runTasks();
 		}
 	}
 
