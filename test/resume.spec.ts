@@ -15,19 +15,27 @@ describe('resume paused queue', () => {
 			genPromise(200)
 		]);
 		queue.run();
-		return queue.result().then(result => {
-			const state = queue.getState();
 
-			expect(state).toBe('pause');
-			expect(result).toEqual([100]);
-
-			queue.resume();
-			queue.result().then(res => {
-				const state = queue.getState();
-
-				expect(state).toBe('finish');
-				expect(res).toEqual([100, 200]);
+		function finalPromise() {
+			return new Promise(resolve => {
+				queue.result().then(result => {
+					const state = queue.getState();
+		
+					expect(state).toBe('pause');
+					expect(result).toEqual([100]);
+		
+					queue.resume();
+					queue.result().then(res => {
+						const state = queue.getState();
+		
+						expect(state).toBe('finish');
+						expect(res).toEqual([100, 200]);
+						resolve();
+					});
+				});
 			});
-		});
+		}
+
+		return finalPromise();
 	});
 });

@@ -61,6 +61,27 @@ describe('one more concurrence tasks running result', () => {
 		});
 	});
 
+	test('can add array tasks and order in result', () => {
+		queue.add([
+			genPromise(200),
+			genPromise(300),
+			genPromise(400),
+			genPromise(500),
+			genPromise(600),
+			genPromise(700),
+			genPromise(800),
+			genPromise(900)
+		]);
+		queue.run();
+		return queue.result().then(res => {
+			expect(res).toEqual([
+				100, 200, 300,
+				400, 500, 600,
+				700, 800, 900
+			]);
+		});
+	});
+
 	test('correct result order after adding priority', () => {
 		queue.add(genPromise(300), -1);
 		queue.add(genPromise(200));
