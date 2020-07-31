@@ -1,7 +1,5 @@
-import { Queue, State, Options, TaskFn, Task, Tasks } from './types';
-import { isPromise } from './utils/isPromise';
-import { wait } from './utils/wait';
-const noop: () => void = function() {};
+import { Queue, State, Options, Task, Tasks } from './types';
+import { isPromise, addPriority, wait, noop } from './utils';
 
 function createQueue(options: Options): Queue {
 	if(options === undefined) {
@@ -49,15 +47,6 @@ function createQueue(options: Options): Queue {
 				currentQueue.push(task);
 			}
 		}
-	}
-
-	// Add priority to every task
-	function addPriority(tasks: TaskFn, priority): Task {
-		priority = typeof priority === 'number' ? priority : 0;
-		const task = tasks as Task;
-
-		task.priority = priority;
-		return task;
 	}
 
 	// Run the queue
