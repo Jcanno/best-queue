@@ -78,9 +78,9 @@ const { createQueue } = require('best-queue');
 
     - **默认值**: `function() {}`
 
-	- options.recordError:
+  - options.recordError:
 
-		- **描述**: 当任务出错时记录错误而不是结束队列，保持队列能够容错，队列的结果会保留所有错误和正常任务的结果。
+    - **描述**: 当任务出错时记录错误而不是结束队列，保持队列能够容错，队列的结果会保留所有错误和正常任务的结果。
 
     - **类型**: `Boolean`
 
