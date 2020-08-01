@@ -2,18 +2,18 @@ import { Queue, State, Options, Task, Tasks } from './types';
 import { isPromise, addPriority, wait, noop } from './utils';
 
 function createQueue(options: Options): Queue {
-	if(options === undefined) {
+	if(!options) {
 		throw new Error('options is required');
 	}
-	let finished = [];
-	let { max = 1, interval = 0, taskCb = noop } = options;
+	let finished: any [] = [];
+	let { max = 1, interval = 0, taskCb = noop, recordError = false } = options;
 	let needSort = false;
 	let currentQueue: Task[] = [];
 	let currentPromise: Promise<any> = null;
 	let currentState: State = State.Init;
 	let currentIndex = 0;
 	let resolveFn: (v: any []) => void;
-	let rejectFn: (v: any []) => void;
+	let rejectFn: (v: any) => void;
 
 	// Inspect type of max, interval, taskCb
 	if(typeof max !== 'number' || typeof interval !== 'number' || typeof taskCb !== 'function') {
@@ -27,7 +27,8 @@ function createQueue(options: Options): Queue {
 
 	// Make max to an integer, same effect with parseInt()
 	max = max >> 0;
-
+	// Make recordError to boolean
+	recordError = !!recordError;
 	/**
 	 * Add task to queue
 	 * @param tasks			 Task that need to handle
@@ -106,7 +107,7 @@ function createQueue(options: Options): Queue {
 		if(!isPromise(p)) {
 			throw new Error('every task must return a promise');
 		}
-		p.then(async res => {
+		p.then(res => {
 			finished[resultIndex] = res;
 			taskCb(res);
 			if(currentState === State.Pause) {
@@ -119,19 +120,33 @@ function createQueue(options: Options): Queue {
 				setState(State.Finish);
 				resolveFn(finished);
 			}else {
-				if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
-					await wait(interval);
-					if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
-						const nextTask = currentQueue[++currentIndex];
-						
-						excuteTask(nextTask, currentIndex);
-					}
-				}
+				findNextAndExcute();
 			}
 		}).catch(err => {
-			setState(State.Error);
-			rejectFn(err);
+			if(recordError) {
+				finished[resultIndex] = (err instanceof Error) ? err : new Error(err.toString());
+				if(isLastTask) {
+					setState(State.Finish);
+					resolveFn(finished);
+				}else {
+					findNextAndExcute();
+				}
+			}else {
+				setState(State.Error);
+				rejectFn(err);
+			}
 		});
+	}
+
+	async function findNextAndExcute() {
+		if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
+			await wait(interval);
+			if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
+				const nextTask = currentQueue[++currentIndex];
+				
+				excuteTask(nextTask, currentIndex);
+			}
+		}
 	}
 
 	// change state of queue

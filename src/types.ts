@@ -10,6 +10,7 @@ export interface Options {
 	max?: number;
 	interval?: number;
 	taskCb?: (res: any) => any;
+	recordError?: boolean;
 }
 
 export interface TaskFn {

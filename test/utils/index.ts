@@ -13,7 +13,7 @@ function genRejectPromise(time) {
 		return new Promise((r, j) => {
 			setTimeout(() => {
 				j(time);
-			}, time);
+			}, typeof time === 'number' ? time : 100);
 		});
 	};
 }
