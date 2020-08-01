@@ -80,9 +80,9 @@ const { createQueue } = require('best-queue');
 
     - **default**: `function() {}`
 
-	- options.recordError:
+  - options.recordError:
 
-		- **description**: record error task instead of reject queue when task gone error, make queue can tolerate error, result of queue contains all result of error or normal task.
+    - **description**: record error task instead of reject queue when task gone error, make queue can tolerate error, result of queue contains all result of error or normal task.
 
     - **type**: `Boolean`
 
