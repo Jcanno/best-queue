@@ -1,6 +1,6 @@
 {
-  "name": "best-request",
-  "version": "3.1.0",
+  "name": "best-queue",
+  "version": "1.0.0",
   "description": "Make async task in a queue",
   "main": "dist/index.js",
   "scripts": {
