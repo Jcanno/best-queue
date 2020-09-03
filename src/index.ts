@@ -108,30 +108,10 @@ function createQueue(options: Options): Queue {
 			throw new Error('every task must return a promise');
 		}
 		p.then(res => {
-			finished[resultIndex] = res;
-			hasFinishedCount++;
-			taskCb(res);
-
-			if(currentState === State.Pause || currentState === State.Init) {
-				return;
-			}
-
-			if(hasFinishedCount === currentQueue.length) {
-				setState(State.Finish);
-				resolveFn(finished);
-			}else {
-				findNextAndExcute();
-			}
+			handleSingleTaskResult(res, resultIndex);
 		}).catch(err => {
 			if(recordError) {
-				hasFinishedCount++;
-				finished[resultIndex] = (err instanceof Error) ? err : new Error(err.toString());
-				if(hasFinishedCount === currentQueue.length) {
-					setState(State.Finish);
-					resolveFn(finished);
-				}else {
-					findNextAndExcute();
-				}
+				handleSingleTaskResult((err instanceof Error) ? err : new Error(err.toString()), resultIndex);
 			}else {
 				setState(State.Error);
 				rejectFn(err);
@@ -139,13 +119,28 @@ function createQueue(options: Options): Queue {
 		});
 	}
 
+	function handleSingleTaskResult(result, resultIndex) {
+		hasFinishedCount++;
+		finished[resultIndex] = result;
+		taskCb(result);
+
+		if(currentState === State.Pause || currentState === State.Init) {
+			return;
+		}
+
+		if(hasFinishedCount === currentQueue.length) {
+			setState(State.Finish);
+			resolveFn(finished);
+		}else {
+			findNextAndExcute();
+		}
+	}
+
 	async function findNextAndExcute() {
 		if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
 			await wait(interval);
 			if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
-				const nextTask = currentQueue[++currentIndex];
-				
-				excuteTask(nextTask, currentIndex);
+				excuteTask(currentQueue[++currentIndex], currentIndex);
 			}
 		}
 	}
