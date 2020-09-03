@@ -90,4 +90,14 @@ describe('one more concurrence tasks running result', () => {
 			expect(res).toEqual([100, 200, 300]);
 		});
 	});
+
+	test('test final task finish', () => {
+		queue.add(genPromise(100));
+		queue.add(genPromise(300));
+		queue.add(genPromise(200));
+		queue.run();
+		return queue.result().then(res => {
+			expect(res).toEqual([100, 100, 300, 200]);
+		});
+	});
 });

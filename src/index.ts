@@ -12,7 +12,8 @@ function createQueue(options: Options): Queue {
 	let currentPromise: Promise<any> = null;
 	let currentState: State = State.Init;
 	let currentIndex = 0;
-	let resolveFn: (v: any []) => void;
+	let hasFinishedCount = 0;
+	let resolveFn: (v: any [] | string) => void;
 	let rejectFn: (v: any) => void;
 
 	// Inspect type of max, interval, taskCb
@@ -86,7 +87,7 @@ function createQueue(options: Options): Queue {
 			excuteTask(currentQueue[currentIndex], currentIndex);
 		}
 	}
-
+	
 	/**
 	 * Excute single task, when a task done, put the result of task into finished
 	 * run taskCb of options(taskCb may pause the queue, it's just decided by user), 
@@ -102,21 +103,20 @@ function createQueue(options: Options): Queue {
 	 */
 	function excuteTask(task: Task, resultIndex: number) {
 		const p: Promise<any> = task();
-		const isLastTask = resultIndex === currentQueue.length - 1;
 
 		if(!isPromise(p)) {
 			throw new Error('every task must return a promise');
 		}
 		p.then(res => {
 			finished[resultIndex] = res;
+			hasFinishedCount++;
 			taskCb(res);
-			if(currentState === State.Pause) {
-				isLastTask && setState(State.Finish);
-				resolveFn(finished);
+
+			if(currentState === State.Pause || currentState === State.Init) {
 				return;
 			}
 
-			if(isLastTask) {
+			if(hasFinishedCount === currentQueue.length) {
 				setState(State.Finish);
 				resolveFn(finished);
 			}else {
@@ -124,8 +124,9 @@ function createQueue(options: Options): Queue {
 			}
 		}).catch(err => {
 			if(recordError) {
+				hasFinishedCount++;
 				finished[resultIndex] = (err instanceof Error) ? err : new Error(err.toString());
-				if(isLastTask) {
+				if(hasFinishedCount === currentQueue.length) {
 					setState(State.Finish);
 					resolveFn(finished);
 				}else {
@@ -167,34 +168,33 @@ function createQueue(options: Options): Queue {
 
 	// Pause the running queue
 	function pause() {
-		if(currentState === State.Running) {
-			setState(State.Pause);
-		}
+		currentState === State.Running && setState(State.Pause);
 	}
 
 	// Get paused queue to resume
 	// Should start next of currentIndex
 	function resume() {
 		if(currentState === State.Pause) {
+			if(currentIndex === currentQueue.length - 1) {
+				setState(State.Finish);
+				resolveFn(finished);
+				return;
+			}
+			setState(State.Running);
 			currentIndex++;
-			currentPromise = new Promise((resolve, reject) => {
-				resolveFn = resolve;
-				rejectFn = reject;
-				runTasks();
-			});
+			runTasks();
 		}
 	}
 
 	// Clear queue(can called when queue is error of state)
 	// Make sure queue is not running
 	function clear() {
-		if(currentState === State.Running || currentState ===  State.Pause) {
-			resolveFn(finished);
-		}
 		currentQueue = [];
 		currentIndex = 0;
 		finished = [];
+		hasFinishedCount = 0;
 		setState(State.Init);
+		currentPromise && resolveFn('CLEAR');
 	}
 
 	/**

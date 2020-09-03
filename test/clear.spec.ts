@@ -32,7 +32,7 @@ describe('clear queue', () => {
 		return queue.result().then(res => {
 			const state = queue.getState();
 
-			expect(res).toEqual([100]);
+			expect(res).toEqual('CLEAR');
 			expect(state).toBe('init');
 		});
 	});
@@ -50,7 +50,7 @@ describe('clear queue', () => {
 		return queue.result().then(res => {
 			const state = queue.getState();
 
-			expect(res).toEqual([]);
+			expect(res).toEqual('CLEAR');
 			expect(state).toBe('init');
 		});
 	});
@@ -67,7 +67,7 @@ describe('clear queue', () => {
 		function callback(res) {
 			const state = queue.getState();
 
-			expect(res).toEqual([]);
+			expect(res).toEqual('CLEAR');
 			expect(state).toBe('init');
 			done();
 		}

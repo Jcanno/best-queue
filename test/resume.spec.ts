@@ -5,8 +5,13 @@ describe('resume paused queue', () => {
 	test('rerun the queue', () => {
 		const queue = createQueue({
 			max: 1,
-			taskCb: () => {
-				queue.pause();
+			taskCb: res => {
+				if(res === 100) {
+					queue.pause();
+					const state = queue.getState();
+
+					expect(state).toBe('pause');
+				}
 			}
 		});
 		
@@ -15,23 +20,18 @@ describe('resume paused queue', () => {
 			genPromise(200)
 		]);
 		queue.run();
-
+		setTimeout(() => {
+			queue.resume();
+		}, 300);
 		function finalPromise() {
 			return new Promise(resolve => {
+				
 				queue.result().then(result => {
 					const state = queue.getState();
 		
-					expect(state).toBe('pause');
-					expect(result).toEqual([100]);
-		
-					queue.resume();
-					queue.result().then(res => {
-						const state = queue.getState();
-		
-						expect(state).toBe('finish');
-						expect(res).toEqual([100, 200]);
-						resolve();
-					});
+					expect(state).toBe('finish');
+					expect(result).toEqual([100, 200]);
+					resolve();
 				});
 			});
 		}
