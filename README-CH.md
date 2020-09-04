@@ -108,7 +108,7 @@ const { createQueue } = require('best-queue');
   queue.add(asyncTask, 1)
   // 添加数组异步任务
   queue.add([
-		// 异步任务期望是返回Promise的函数
+    // 异步任务期望是返回Promise的函数
     asyncTask,
     asyncTask,
   ], 5)
@@ -189,8 +189,8 @@ const { createQueue } = require('best-queue');
     asyncTask,
     asyncTask,
   ])
-	queue.run()
-	// result方法会被阻塞
+  queue.run()
+  // result方法会被阻塞
   queue.result().then(result => {
     console.log(result)
   })
@@ -213,8 +213,8 @@ const { createQueue } = require('best-queue');
       console.log('one task done')
       // 第一个任务完成后队列将暂停
       if(index === 0) {
-				queue.pause()
-			}
+        queue.pause()
+      }
     }
   })
 
@@ -227,11 +227,11 @@ const { createQueue } = require('best-queue');
   ])
   queue.run()
   queue.result().then(result => {
-    
-	})
-	
-	setTimeout(() => {
-		// 队列会在第一个任务后暂停，resume会继续执行队列
+    console.log(result)
+  })
+  
+  setTimeout(() => {
+    // 队列会在第一个任务后暂停，resume会继续执行队列
     queue.resume();
   }, 1500);
   ```
@@ -251,10 +251,10 @@ const { createQueue } = require('best-queue');
     // 每个异步任务完成时的回调
     taskCb: (result, index) => {
       console.log('one task done')
-			// 第一个任务完成后队列将暂停
-			if(index === 0) {
-				queue.pause()
-			}
+      // 第一个任务完成后队列将暂停
+      if(index === 0) {
+        queue.pause()
+      }
     }
   })
 
@@ -267,13 +267,13 @@ const { createQueue } = require('best-queue');
   ])
   queue.run()
   queue.result().then(result => {
-		if(result === 'CLEAR') {
-			// 执行其他逻辑
-		}
-	})
-	
+    if(result === 'CLEAR') {
+      // 执行其他逻辑
+    }
+  })
+  
   setTimeout(() => {
-		// 清空队列, 让队列返回 `CLEAR` 结果
+    // 清空队列, 让队列返回 `CLEAR` 结果
     queue.clear();
   }, 1500);
   ```

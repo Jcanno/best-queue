@@ -110,7 +110,7 @@ const { createQueue } = require('best-queue');
   queue.add(asyncTask, 1)
   // add array task
   queue.add([
-		// asyncTask expected to be function return promise
+    // asyncTask expected to be function return promise
     asyncTask,
     asyncTask,
   ], 5)
@@ -191,8 +191,8 @@ const { createQueue } = require('best-queue');
     asyncTask,
     asyncTask,
   ])
-	queue.run()
-	// result will waiting here
+  queue.run()
+  // result will waiting here
   queue.result().then(result => {
     console.log(result)
   })
@@ -213,10 +213,10 @@ const { createQueue } = require('best-queue');
     // callback when every task done
     taskCb: (result, index) => {
       console.log('one task done')
-			// queue will be paused after first task
-			if(index === 0) {
-				queue.pause()
-			}
+      // queue will be paused after first task
+      if(index === 0) {
+        queue.pause()
+      }
     }
   })
 
@@ -229,15 +229,11 @@ const { createQueue } = require('best-queue');
   ])
   queue.run()
   queue.result().then(result => {
-    // queue will rerun
-    queue.resume()
-    queue.result().then(result => {
-      console.log(result)
-    })
-	})
-	
+    console.log(result)
+  })
+  
   setTimeout(() => {
-		// queue paused after first task done, it will rerun the queue
+    // queue paused after first task done, it will rerun the queue
     queue.resume();
   }, 1500);
   ```
@@ -257,10 +253,10 @@ const { createQueue } = require('best-queue');
     // callback when every task done
     taskCb: (result, index) => {
       console.log('one task done')
-			// queue will be paused after first task
-			if(index === 0) {
-				queue.pause()
-			}
+      // queue will be paused after first task
+      if(index === 0) {
+        queue.pause()
+      }
     }
   })
 
@@ -273,13 +269,13 @@ const { createQueue } = require('best-queue');
   ])
   queue.run()
   queue.result().then(result => {
-		if(result === 'CLEAR') {
-			// do something
-		}
-	})
-	
+    if(result === 'CLEAR') {
+      // do something
+    }
+  })
+  
   setTimeout(() => {
-		// clear queue, resovle queue with `CLEAR` result
+    // clear queue, resovle queue with `CLEAR` result
     queue.clear();
   }, 1500);
   ```
