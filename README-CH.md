@@ -48,7 +48,7 @@ const { createQueue } = require('best-queue');
       max: 1,
       interval: 1 * 1000,
       // 每个异步任务完成时的回调
-      taskCb: result => {
+      taskCb: (result, index) => {
         console.log('one task done')
       }
     })
@@ -99,7 +99,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // 每个异步任务完成时的回调
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
     }
   })
@@ -108,6 +108,7 @@ const { createQueue } = require('best-queue');
   queue.add(asyncTask, 1)
   // 添加数组异步任务
   queue.add([
+		// 异步任务期望是返回Promise的函数
     asyncTask,
     asyncTask,
   ], 5)
@@ -126,7 +127,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // 每个异步任务完成时的回调
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
     }
   })
@@ -148,7 +149,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // 每个异步任务完成时的回调
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
     }
   })
@@ -163,7 +164,7 @@ const { createQueue } = require('best-queue');
 
 - pause()
 
-  - **描述**: 暂停队列, 此时的`result`方法会返回当前已完成任务的结果
+  - **描述**: 暂停队列, 队列会停止执行任务
 
   - **类型**: `Function`
 
@@ -174,7 +175,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // 每个异步任务完成时的回调
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
       // 第一份任务完成后队列将暂停
       queue.pause()
@@ -188,17 +189,16 @@ const { createQueue } = require('best-queue');
     asyncTask,
     asyncTask,
   ])
-  queue.run()
+	queue.run()
+	// result方法会被阻塞
   queue.result().then(result => {
-    // 队列暂停
-    // 在这个例子中 result 为第一个异步任务的结果
     console.log(result)
   })
   ```
 
 - resume()
 
-  - **描述**: 继续执行队列，此时需要再次调用`result`方法来获取所有任务的结果
+  - **描述**: 继续执行队列
 
   - **类型**: `Function`
 
@@ -209,10 +209,12 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // 每个异步任务完成时的回调
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
-      // 第一份任务完成后队列将暂停
-      queue.pause()
+      // 第一个任务完成后队列将暂停
+      if(index === 0) {
+				queue.pause()
+			}
     }
   })
 
@@ -225,19 +227,57 @@ const { createQueue } = require('best-queue');
   ])
   queue.run()
   queue.result().then(result => {
-    // 队列将继续执行
-    queue.resume()
-    queue.result().then(result => {
-      console.log(result)
-    })
-  })
+    
+	})
+	
+	setTimeout(() => {
+		// 队列会在第一个任务后暂停，resume会继续执行队列
+    queue.resume();
+  }, 1500);
   ```
 
 - clear()
 
-  - **描述**: 清空队列，如果队列在执行时被调用，将会立刻结束执行并返回当前结果
+  - **描述**: 清空队列，将会立刻结束执行并返回`CLEAR`的结果
 
   - **类型**: `Function`
+
+  - **用法**:
+
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // 每个异步任务完成时的回调
+    taskCb: (result, index) => {
+      console.log('one task done')
+			// 第一个任务完成后队列将暂停
+			if(index === 0) {
+				queue.pause()
+			}
+    }
+  })
+
+  // 添加异步任务
+  queue.add(asyncTask)
+  // 添加数组异步任务
+  queue.add([
+    asyncTask,
+    asyncTask,
+  ])
+  queue.run()
+  queue.result().then(result => {
+		if(result === 'CLEAR') {
+			// 执行其他逻辑
+		}
+	})
+	
+  setTimeout(() => {
+		// 清空队列, 让队列返回 `CLEAR` 结果
+    queue.clear();
+  }, 1500);
+  ```
+
 
 - getState()
 
@@ -252,7 +292,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // 每个异步任务完成时的回调
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
       // 第一份任务完成后队列将暂停
       queue.pause()

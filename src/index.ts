@@ -84,24 +84,24 @@ function createQueue(options: Options): Queue {
 		
 		for(let i = 0; i < (max >= restTasks ? restTasks : max); i++) {
 			currentIndex = startIndex + i;
-			excuteTask(currentQueue[currentIndex], currentIndex);
+			executeTask(currentQueue[currentIndex], currentIndex);
 		}
 	}
 	
 	/**
-	 * Excute single task, when a task done, put the result of task into finished
+	 * execute single task, when a task done, put the result of task into finished
 	 * run taskCb of options(taskCb may pause the queue, it's just decided by user), 
 	 * so after that if state of queue is Paused, just resolve currentPromise, 
 	 * if not and isLastTask is true(means queue is over), change state and resolve 
 	 * currentPromise, if isLastTask is false, check currentIndex and currentState, 
 	 * after waiting the inverval, check currentIndex and currentState again(we don't 
-	 * know if the queue is over ater wait), then find next task by currentIndex, excute
+	 * know if the queue is over ater wait), then find next task by currentIndex, execute
 	 * next task in a loop
 	 * 
 	 * @param task Current running task 
 	 * @param resultIndex Make the order of finished be same to the order of queue
 	 */
-	function excuteTask(task: Task, resultIndex: number) {
+	function executeTask(task: Task, resultIndex: number) {
 		const p: Promise<any> = task();
 
 		if(!isPromise(p)) {
@@ -122,7 +122,7 @@ function createQueue(options: Options): Queue {
 	function handleSingleTaskResult(result, resultIndex) {
 		hasFinishedCount++;
 		finished[resultIndex] = result;
-		taskCb(result);
+		taskCb(result, resultIndex);
 
 		if(currentState === State.Pause || currentState === State.Init) {
 			return;
@@ -132,15 +132,15 @@ function createQueue(options: Options): Queue {
 			setState(State.Finish);
 			resolveFn(finished);
 		}else {
-			findNextAndExcute();
+			findNextAndExecute();
 		}
 	}
 
-	async function findNextAndExcute() {
+	async function findNextAndExecute() {
 		if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
 			await wait(interval);
 			if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
-				excuteTask(currentQueue[++currentIndex], currentIndex);
+				executeTask(currentQueue[++currentIndex], currentIndex);
 			}
 		}
 	}

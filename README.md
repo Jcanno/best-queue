@@ -50,7 +50,7 @@ const { createQueue } = require('best-queue');
       max: 1,
       interval: 1 * 1000,
       // callback when every task done
-      taskCb: result => {
+      taskCb: (result, index) => {
         console.log('one task done')
       }
     })
@@ -101,7 +101,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // callback when every task done
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
     }
   })
@@ -110,6 +110,7 @@ const { createQueue } = require('best-queue');
   queue.add(asyncTask, 1)
   // add array task
   queue.add([
+		// asyncTask expected to be function return promise
     asyncTask,
     asyncTask,
   ], 5)
@@ -128,7 +129,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // callback when every task done
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
     }
   })
@@ -150,7 +151,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // callback when every task done
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
     }
   })
@@ -165,7 +166,7 @@ const { createQueue } = require('best-queue');
 
 - pause()
 
-  - **description**:  `pause` the queue, `result` method will return the result of finished tasks.
+  - **description**:  `pause` the queue, queue stop to execute task.
 
   - **type**: `Function`
 
@@ -176,7 +177,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // callback when every task done
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
       // queue will be paused after first task
       queue.pause()
@@ -190,17 +191,16 @@ const { createQueue } = require('best-queue');
     asyncTask,
     asyncTask,
   ])
-  queue.run()
+	queue.run()
+	// result will waiting here
   queue.result().then(result => {
-    // the queue paused
-    // return the result of first task in this case
     console.log(result)
   })
   ```
 
 - resume()
 
-  - **description**: rerun the queue, you need to call the `result` method again to get the result of all tasks.
+  - **description**: rerun the queue.
 
   - **type**: `Function`
 
@@ -211,10 +211,12 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // callback when every task done
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
-      // queue will be paused after first task
-      queue.pause()
+			// queue will be paused after first task
+			if(index === 0) {
+				queue.pause()
+			}
     }
   })
 
@@ -232,14 +234,55 @@ const { createQueue } = require('best-queue');
     queue.result().then(result => {
       console.log(result)
     })
-  })
+	})
+	
+  setTimeout(() => {
+		// queue paused after first task done, it will rerun the queue
+    queue.resume();
+  }, 1500);
   ```
 
 - clear()
 
-  - **description**: clear queue, it will resolve promise immediately if queue is running
+  - **description**: clear queue, it will resolve promise immediately if queue is running, you can get 'CLEAR' flag of result
 
   - **type**: `Function`
+
+  - **usage**:
+
+  ```js
+  let queue = createQueue({
+    max: 1,
+    interval: 1 * 1000,
+    // callback when every task done
+    taskCb: (result, index) => {
+      console.log('one task done')
+			// queue will be paused after first task
+			if(index === 0) {
+				queue.pause()
+			}
+    }
+  })
+
+  // add task
+  queue.add(asyncTask)
+  // add array task
+  queue.add([
+    asyncTask,
+    asyncTask,
+  ])
+  queue.run()
+  queue.result().then(result => {
+		if(result === 'CLEAR') {
+			// do something
+		}
+	})
+	
+  setTimeout(() => {
+		// clear queue, resovle queue with `CLEAR` result
+    queue.clear();
+  }, 1500);
+  ```
 
 - getState()
 
@@ -254,7 +297,7 @@ const { createQueue } = require('best-queue');
     max: 1,
     interval: 1 * 1000,
     // callback when every task done
-    taskCb: result => {
+    taskCb: (result, index) => {
       console.log('one task done')
       // queue will be paused after first task
       queue.pause()

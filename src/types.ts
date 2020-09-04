@@ -9,7 +9,7 @@ export enum State {
 export interface Options {
 	max?: number;
 	interval?: number;
-	taskCb?: (res: any) => any;
+	taskCb?: (res: any, index: number) => any;
 	recordError?: boolean;
 }
 
