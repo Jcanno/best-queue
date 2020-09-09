@@ -137,9 +137,9 @@ function createQueue(options: Options): Queue {
 	}
 
 	async function findNextAndExecute() {
-		if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
+		if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {
 			await wait(interval);
-			if(currentIndex !== currentQueue.length - 1 && currentState === State.Running) {
+			if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {
 				executeTask(currentQueue[++currentIndex], currentIndex);
 			}
 		}
