@@ -39,7 +39,7 @@ const { createQueue } = require('best-queue');
 
     - **type**: `Object`
 
-    - **default**: `{max: 1, interval: 0, taskCb: function (){}}`
+    - **default**: `{max: 1, interval: 0, taskCb: function (){}, recordError: false}`
 
     - **usage**:
 

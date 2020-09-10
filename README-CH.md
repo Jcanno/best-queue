@@ -37,7 +37,7 @@ const { createQueue } = require('best-queue');
 
     - **类型**: `Object`
 
-    - **默认值**: `{max: 1, interval: 0, taskCb: function (){}}`
+    - **默认值**: `{max: 1, interval: 0, taskCb: function (){}, recordError: false}`
 
     - **用法**:
 

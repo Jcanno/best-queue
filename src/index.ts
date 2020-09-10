@@ -29,7 +29,7 @@ function createQueue(options: Options): Queue {
 	// Make max to an integer, same effect with parseInt()
 	max = max >> 0;
 	// Make recordError to boolean
-	recordError = !!recordError;
+	recordError = Boolean(recordError);
 	/**
 	 * Add task to queue
 	 * @param tasks			 Task that need to handle
