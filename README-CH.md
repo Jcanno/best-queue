@@ -7,7 +7,7 @@
 
 ![](https://hawksights.obs.cn-east-2.myhuaweicloud.com/ceshi/1593997266220.png)
 ## 安装
-在命令函输入以下代码进行安装:
+在命令行输入以下代码进行安装:
 
 ```js
 npm i best-queue
@@ -27,9 +27,9 @@ const { createQueue } = require('best-queue');
 ## **API**
 - createQueue(options):
 
-  - **description**: 通过配置创建队列
+  - **描述**: 通过配置创建队列
 
-  - **type**: `Function(Options): Queue`
+  - **类型**: `Function(Options): Queue`
 
   - options:
 
