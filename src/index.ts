@@ -26,7 +26,7 @@ function createQueue(options: Options): Queue {
 		throw new Error('Except max min to 1, interval min to 0');
 	}
 
-	// Make max to an integer, same effect with parseInt()
+	// Make max to an integer
 	max = max >> 0;
 	// Make recordError to boolean
 	recordError = Boolean(recordError);
@@ -53,7 +53,7 @@ function createQueue(options: Options): Queue {
 
 	// Run the queue
 	function run() {
-		if(currentState !== State.Running && currentPromise === null) {
+		if(currentState === State.Init) {
 			currentPromise = new Promise((resolve, reject) => {
 				resolveFn = resolve;
 				rejectFn = reject;
@@ -89,11 +89,11 @@ function createQueue(options: Options): Queue {
 	}
 	
 	/**
-	 * execute single task, when a task done, put the result of task into finished
+	 * Execute single task, when a task done, put the result of task into finished
 	 * run taskCb of options(taskCb may pause the queue, it's just decided by user), 
-	 * so after that if state of queue is Paused, just resolve currentPromise, 
-	 * if not and isLastTask is true(means queue is over), change state and resolve 
-	 * currentPromise, if isLastTask is false, check currentIndex and currentState, 
+	 * so after that if state of queue is Paused, queue stop execute task, 
+	 * if not and queue is over, change state and resolve currentPromise,
+	 * if queue is not over, check currentIndex and currentState, 
 	 * after waiting the inverval, check currentIndex and currentState again(we don't 
 	 * know if the queue is over ater wait), then find next task by currentIndex, execute
 	 * next task in a loop
@@ -145,12 +145,12 @@ function createQueue(options: Options): Queue {
 		}
 	}
 
-	// change state of queue
+	// Change state of queue
 	function setState(nextState: State): void {
 		currentState = nextState;
 	}
 
-	// TODO: can add params to result, just start queue
+	// TODO: Can add params to result, just start queue
 	/**
 	 * @returns {Promise} 
 	 */
