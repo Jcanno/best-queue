@@ -25,6 +25,18 @@ const { createQueue } = require('best-queue');
 ```
 
 ## **API**
+
+```js
+// 模拟异步任务, 在下面例子中使用
+function asyncTask() {
+  return new Promise(r => {
+    setTimeout(() => {
+      r()
+    }, 1000);
+  })
+}
+```
+
 - createQueue(options):
 
   - **描述**: 通过配置创建队列

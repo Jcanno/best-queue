@@ -1,6 +1,6 @@
 {
   "name": "best-queue",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Make async task in a queue",
   "main": "dist/index.js",
   "scripts": {
@@ -8,8 +8,7 @@
     "test": "jest --coverage",
     "release": "npm run build && npm publish",
     "release:beta": "npm run build && npm publish --tag=beta",
-    "commit": "git-cz",
-    "version": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
+    "commit": "git-cz"
   },
   "types": "types/index.d.ts",
   "files": [

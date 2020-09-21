@@ -27,6 +27,17 @@ const { createQueue } = require('best-queue');
 
 ## **API**
 
+```js
+// simulate asyncTask, used below examples
+function asyncTask() {
+  return new Promise(r => {
+    setTimeout(() => {
+      r()
+    }, 1000);
+  })
+}
+```
+
 - createQueue(options):
 
   - **description**: create a queue by options
@@ -282,11 +293,11 @@ const { createQueue } = require('best-queue');
 
 - getState()
 
-  - **描述**: get current state of queue: init, running, error, finish, pause
+  - **description**: get current state of queue: init, running, error, finish, pause
 
-  - **类型**: `Function: String`
+  - **type**: `Function: String`
 
-  - **用法**: 
+  - **usage**: 
 
   ```js
   let queue = createQueue({
