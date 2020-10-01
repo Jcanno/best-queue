@@ -1,7 +1,8 @@
 import { Queue, State, Options, Task, Tasks } from './types';
-import { isPromise, addPriority, wait, noop } from './utils';
+import { addPriority, wait, noop } from './utils';
+import Executer from './executer';
 
-function createQueue(options: Options): Queue {
+function createQueue(options: Options): Queue<Tasks, State> {
 	if(!options) {
 		throw new Error('options is required');
 	}
@@ -15,6 +16,7 @@ function createQueue(options: Options): Queue {
 	let hasFinishedCount = 0;
 	let resolveFn: (v: any [] | string) => void;
 	let rejectFn: (v: any) => void;
+	const executer = new Executer(onSuccess, onError);
 
 	// Inspect type of max, interval, taskCb
 	if(typeof max !== 'number' || typeof interval !== 'number' || typeof taskCb !== 'function') {
@@ -78,45 +80,28 @@ function createQueue(options: Options): Queue {
 	function runTasks() {
 		const totalTasks = currentQueue.length;
 		const restTasks = totalTasks - currentIndex;
+		const concurrency = max >= restTasks ? restTasks : max;
 		const startIndex = currentIndex;
 
 		setState(State.Running);
 		
-		for(let i = 0; i < (max >= restTasks ? restTasks : max); i++) {
+		for(let i = 0; i < concurrency; i++) {
 			currentIndex = startIndex + i;
-			executeTask(currentQueue[currentIndex], currentIndex);
+			executer.handle(currentQueue[currentIndex], currentIndex);
 		}
 	}
-	
-	/**
-	 * Execute single task, when a task done, put the result of task into finished
-	 * run taskCb of options(taskCb may pause the queue, it's just decided by user), 
-	 * so after that if state of queue is Paused, queue stop execute task, 
-	 * if not and queue is over, change state and resolve currentPromise,
-	 * if queue is not over, check currentIndex and currentState, 
-	 * after waiting the inverval, check currentIndex and currentState again(we don't 
-	 * know if the queue is over ater wait), then find next task by currentIndex, execute
-	 * next task in a loop
-	 * 
-	 * @param task Current running task 
-	 * @param resultIndex Make the order of finished be same to the order of queue
-	 */
-	function executeTask(task: Task, resultIndex: number) {
-		const p: Promise<any> = task();
+  
+	function onSuccess(res, resultIndex) {
+		handleSingleTaskResult(res, resultIndex);
+	}
 
-		if(!isPromise(p)) {
-			throw new Error('every task must return a promise');
+	function onError(err, resultIndex) {
+		if(recordError) {
+			handleSingleTaskResult((err instanceof Error) ? err : new Error(err.toString()), resultIndex);
+		}else {
+			setState(State.Error);
+			rejectFn(err);
 		}
-		p.then(res => {
-			handleSingleTaskResult(res, resultIndex);
-		}).catch(err => {
-			if(recordError) {
-				handleSingleTaskResult((err instanceof Error) ? err : new Error(err.toString()), resultIndex);
-			}else {
-				setState(State.Error);
-				rejectFn(err);
-			}
-		});
 	}
 
 	function handleSingleTaskResult(result, resultIndex) {
@@ -140,7 +125,7 @@ function createQueue(options: Options): Queue {
 		if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {
 			await wait(interval);
 			if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {
-				executeTask(currentQueue[++currentIndex], currentIndex);
+				executer.handle(currentQueue[++currentIndex], currentIndex);
 			}
 		}
 	}
