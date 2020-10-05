@@ -23,7 +23,7 @@ export interface Task extends TaskFn {
 	priority: number;
 }
 
-export interface Queue<Tasks, State> {
+export interface Queue {
 	getState(): State;
 	add(task: Tasks, priority?: number): void;
 	run(): void;

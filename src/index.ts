@@ -2,7 +2,7 @@ import { Queue, State, Options, Task, Tasks } from './types';
 import { addPriority, wait, noop } from './utils';
 import Executer from './executer';
 
-function createQueue(options: Options): Queue<Tasks, State> {
+function createQueue(options: Options): Queue {
 	if(!options) {
 		throw new Error('options is required');
 	}

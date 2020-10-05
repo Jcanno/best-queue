@@ -49,6 +49,7 @@
     "eslint-config-scales": "^0.2.0",
     "jest": "^26.1.0",
     "rollup": "^2.2.0",
+    "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-typescript2": "^0.27.0",
     "ts-jest": "^26.1.1",
     "typescript": "^3.8.3"
