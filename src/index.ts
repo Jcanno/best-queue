@@ -6,7 +6,7 @@ function createQueue(options: Options): Queue {
 	if(!options) {
 		throw new Error('options is required');
 	}
-	let finished: any [] = [];
+	let finished = [];
 	let { max = 1, interval = 0, taskCb = noop, recordError = false } = options;
 	let needSort = false;
 	let currentQueue: Task[] = [];
@@ -84,18 +84,18 @@ function createQueue(options: Options): Queue {
 		const startIndex = currentIndex;
 
 		setState(State.Running);
-		
+    
 		for(let i = 0; i < concurrency; i++) {
 			currentIndex = startIndex + i;
 			executer.handle(currentQueue[currentIndex], currentIndex);
 		}
 	}
   
-	function onSuccess(res, resultIndex) {
+	function onSuccess(res: any, resultIndex: number) {
 		handleSingleTaskResult(res, resultIndex);
 	}
 
-	function onError(err, resultIndex) {
+	function onError(err: any, resultIndex: number) {
 		if(recordError) {
 			handleSingleTaskResult((err instanceof Error) ? err : new Error(err.toString()), resultIndex);
 		}else {
@@ -117,11 +117,11 @@ function createQueue(options: Options): Queue {
 			setState(State.Finish);
 			resolveFn(finished);
 		}else {
-			findNextAndExecute();
+			next();
 		}
 	}
 
-	async function findNextAndExecute() {
+	async function next() {
 		if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {
 			await wait(interval);
 			if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {

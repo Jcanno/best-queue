@@ -24,16 +24,18 @@ class Executer implements IExecuter {
 	}
 	
 	handle(task: Task, resultIndex) {
-		const p: Promise<any> = task();
+		const p = task();
 
 		if(!isPromise(p)) {
 			throw new Error('every task must return a promise');
+		}else {
+			p.then(res => {
+				this.onSuccess(res, resultIndex);
+			}).catch(err => {
+				this.onError(err, resultIndex);
+			});
 		}
-		p.then(res => {
-			this.onSuccess(res, resultIndex);
-		}).catch(err => {
-			this.onError(err, resultIndex);
-		});
+		
 	}
 }
 
