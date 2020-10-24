@@ -1,12 +1,10 @@
 {
 	"compilerOptions": {
 		"lib": ["DOM", "ES2015"],
-		"declaration": true,
-    "declarationDir": "./types",
     "moduleResolution": "node",
     "jsx": "react",
-    "sourceMap": true,
-    "removeComments": false
+    "sourceMap": false,
+    "removeComments": false,
   },
   "include": ["./src/**/*"]
 }

@@ -1,10 +1,4 @@
-export enum State {
-	Init = 'init',
-	Running = 'running',
-	Pause = 'pause',
-	Finish = 'finish',
-	Error = 'error'
-}
+export type State = 'init' | 'running' | 'pause' | 'finish' | 'error'
 
 export interface Options {
 	max?: number;
@@ -13,26 +7,17 @@ export interface Options {
 	recordError?: boolean;
 }
 
-export interface TaskFn {
-	(): Promise<any>;
+export interface Task {
+  (): Promise<any>;
+  [index: string]: any;
 }
 
-export type Tasks = TaskFn[] | TaskFn
+export type Tasks = Task[] | Task
 
-export interface Task extends TaskFn {
-	priority: number;
-}
-
-export interface Queue {
-	getState(): State;
-	add(task: Tasks, priority?: number): void;
-	run(): void;
-	result(): Promise<any>;
-	pause(): void;
-	resume(): void;
-	clear(): void;
+export interface TaskWithPriority extends Task {
+  priority: number;
 }
 
 export interface IExecuter {
-  handle(task: Task, resultIndex: number): void;
+  handle(task: TaskWithPriority, resultIndex: number): void;
 }

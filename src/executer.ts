@@ -1,4 +1,4 @@
-import { IExecuter, Task } from './types';
+import { IExecuter, TaskWithPriority } from './types';
 import { isPromise } from './utils';
 
 /**
@@ -23,7 +23,7 @@ class Executer implements IExecuter {
 		this.onError = onError;
 	}
 	
-	handle(task: Task, resultIndex) {
+	handle(task: TaskWithPriority, resultIndex) {
 		const p = task();
 
 		if(!isPromise(p)) {

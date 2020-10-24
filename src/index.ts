@@ -1,17 +1,17 @@
-import { Queue, State, Options, Task, Tasks } from './types';
+import { State, Options, TaskWithPriority, Tasks } from './types';
 import { addPriority, wait, noop } from './utils';
 import Executer from './executer';
 
-function createQueue(options: Options): Queue {
+function createQueue(options: Options) {
 	if(!options) {
 		throw new Error('options is required');
 	}
 	let finished = [];
 	let { max = 1, interval = 0, taskCb = noop, recordError = false } = options;
 	let needSort = false;
-	let currentQueue: Task[] = [];
+	let currentQueue: TaskWithPriority[] = [];
 	let currentPromise: Promise<any> = null;
-	let currentState: State = State.Init;
+	let currentState: State = 'init';
 	let currentIndex = 0;
 	let hasFinishedCount = 0;
 	let resolveFn: (v: any [] | string) => void;
@@ -55,7 +55,7 @@ function createQueue(options: Options): Queue {
 
 	// Run the queue
 	function run() {
-		if(currentState === State.Init) {
+		if(currentState === 'init') {
 			currentPromise = new Promise((resolve, reject) => {
 				resolveFn = resolve;
 				rejectFn = reject;
@@ -83,7 +83,7 @@ function createQueue(options: Options): Queue {
 		const concurrency = max >= restTasks ? restTasks : max;
 		const startIndex = currentIndex;
 
-		setState(State.Running);
+		setState('running');
     
 		for(let i = 0; i < concurrency; i++) {
 			currentIndex = startIndex + i;
@@ -99,7 +99,7 @@ function createQueue(options: Options): Queue {
 		if(recordError) {
 			handleSingleTaskResult((err instanceof Error) ? err : new Error(err.toString()), resultIndex);
 		}else {
-			setState(State.Error);
+			setState('error');
 			rejectFn(err);
 		}
 	}
@@ -109,12 +109,12 @@ function createQueue(options: Options): Queue {
 		finished[resultIndex] = result;
 		taskCb(result, resultIndex);
 
-		if(currentState === State.Pause || currentState === State.Init) {
+		if(currentState === 'pause' || currentState === 'init') {
 			return;
 		}
 
 		if(hasFinishedCount === currentQueue.length) {
-			setState(State.Finish);
+			setState('finish');
 			resolveFn(finished);
 		}else {
 			next();
@@ -122,9 +122,9 @@ function createQueue(options: Options): Queue {
 	}
 
 	async function next() {
-		if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {
+		if(currentIndex < currentQueue.length - 1 && currentState === 'running') {
 			await wait(interval);
-			if(currentIndex < currentQueue.length - 1 && currentState === State.Running) {
+			if(currentIndex < currentQueue.length - 1 && currentState === 'running') {
 				executer.handle(currentQueue[++currentIndex], currentIndex);
 			}
 		}
@@ -148,19 +148,19 @@ function createQueue(options: Options): Queue {
 
 	// Pause the running queue
 	function pause() {
-		currentState === State.Running && setState(State.Pause);
+		currentState === 'running' && setState('pause');
 	}
 
 	// Get paused queue to resume
 	// Should start next of currentIndex
 	function resume() {
-		if(currentState === State.Pause) {
+		if(currentState === 'pause') {
 			if(currentIndex === currentQueue.length - 1) {
-				setState(State.Finish);
+				setState('finish');
 				resolveFn(finished);
 				return;
 			}
-			setState(State.Running);
+			setState('running');
 			currentIndex++;
 			runTasks();
 		}
@@ -173,7 +173,7 @@ function createQueue(options: Options): Queue {
 		currentIndex = 0;
 		finished = [];
 		hasFinishedCount = 0;
-		setState(State.Init);
+		setState('init');
 		currentPromise && resolveFn('CLEAR');
 	}
 
@@ -196,6 +196,8 @@ function createQueue(options: Options): Queue {
 
 	return queue;
 }
+
+export type Queue = ReturnType<typeof createQueue>
 
 export {
 	createQueue
