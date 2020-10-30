@@ -5,6 +5,9 @@
     "jsx": "react",
     "sourceMap": false,
     "removeComments": false,
+    "declaration": true,
+    "declarationMap": false,
+    "declarationDir": "./types"
   },
   "include": ["./src/**/*"]
 }

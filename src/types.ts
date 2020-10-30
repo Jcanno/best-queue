@@ -1,23 +1,18 @@
-export type State = 'init' | 'running' | 'pause' | 'finish' | 'error'
+export type State = "init" | "running" | "pause" | "finish" | "error";
 
 export interface Options {
-	max?: number;
-	interval?: number;
-	taskCb?: (res: any, index: number) => any;
-	recordError?: boolean;
+  max?: number;
+  interval?: number;
+  taskCb?: (res: any, index: number) => any;
+  recordError?: boolean;
 }
 
-export interface Task {
-  (): Promise<any>;
+export interface TaskNode {
+  handle: unknown;
+  priority: number;
   [index: string]: any;
 }
 
-export type Tasks = Task[] | Task
-
-export interface TaskWithPriority extends Task {
-  priority: number;
-}
-
 export interface IExecuter {
-  handle(task: TaskWithPriority, resultIndex: number): void;
+  handle(taskNode: TaskNode, resultIndex: number): void;
 }
