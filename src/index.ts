@@ -1,6 +1,8 @@
 import { State, Options, TaskNode } from "./types";
-import { wait, noop } from "./utils";
+import { wait } from "./utils/wait";
 import Executer from "./executer";
+
+const noop: () => void = function () {};
 
 function createQueue(options: Options) {
   if (!options) {

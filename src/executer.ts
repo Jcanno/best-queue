@@ -22,7 +22,7 @@ class Executer implements IExecuter {
     this.onError = onError;
   }
 
-  handle(taskNode: TaskNode, resultIndex) {
+  handle(taskNode: TaskNode, resultIndex: number) {
     const taskHandle = taskNode.handle;
 
     Promise.resolve(

@@ -1,10 +1,10 @@
 /**
- * @param time time in two tasks  
+ * @param time time in two tasks
  */
 export function wait(time) {
-	return new Promise(resolve => {
-		setTimeout(() => {
-			resolve();
-		}, time);
-	});
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve();
+    }, time);
+  });
 }
