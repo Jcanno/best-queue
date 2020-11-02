@@ -1,6 +1,6 @@
 {
   "name": "best-queue",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Make async task in a queue",
   "main": "dist/index.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "release:beta": "npm run build && npm publish --tag=beta",
     "commit": "git-cz"
   },
-  "types": "src/index.d.ts",
+  "types": "types/index.d.ts",
   "files": [
     "dist",
     "types"
