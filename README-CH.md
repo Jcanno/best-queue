@@ -37,7 +37,7 @@ const { createQueue } = require("best-queue");
 | options             | 通过配置创建队列                                     | Object                                  | {<br>max: 1, <br>interval: 0,<br>taskCb: function (){}<br>recordError: false<br>} |
 | options.max         | 同时间最大并发量，默认且最小为 1                     | Number                                  | 1                                                                                 |
 | options.interval    | 每个异步任务之间的间隔(毫秒)，默认为 0               | Number                                  | 0                                                                                 |
-| options.taskCb      | 每个异步任务完成时的回调                             | Function(result: any, index: number) {} | function() {}                                                                     |
+| options.taskCb      | 每个异步任务完成时的回调，只在队列运行时调用         | Function(result: any, index: number) {} | function() {}                                                                     |
 | options.recordError | 当任务出错时记录错误而不是结束队列，保持队列能够容错 | Boolean                                 | false                                                                             |
 
 | 方法       | 描述                                                    | 类型                                        |

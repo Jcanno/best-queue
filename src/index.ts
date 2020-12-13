@@ -4,13 +4,10 @@ import Executer from "./executer";
 
 const noop: () => void = function () {};
 
-function createQueue(options: Options) {
-  if (!options) {
-    throw new Error("options is required");
-  }
-  let finished = [];
+function createQueue(options: Options = {}) {
   let { max = 1, interval = 0, taskCb = noop, recordError = false } = options;
   let needSort = false;
+  let finished = [];
   let currentQueue: TaskNode[] = [];
   let currentPromise: Promise<any> = null;
   let currentState: State = "init";
@@ -20,24 +17,14 @@ function createQueue(options: Options) {
   let rejectFn: (v: any) => void;
   const executer = new Executer(onSuccess, onError);
 
-  // Inspect type of max, interval, taskCb
-  if (
-    typeof max !== "number" ||
-    typeof interval !== "number" ||
-    typeof taskCb !== "function"
-  ) {
-    throw new TypeError(
-      "Except max, interval to be a number, taskCb to be a function"
-    );
+  // Inspect taskCb
+  if (typeof taskCb !== "function") {
+    throw new TypeError("Except taskCb to be a function");
   }
-
-  // Max should be equal or greater than 1, and interval should't less than 0
-  if (max < 1 || interval < 0) {
-    throw new Error("Except max min to 1, interval min to 0");
-  }
-
   // Make max to an integer
-  max = max >> 0;
+  max = (max = max >> 0) < 1 ? 1 : max;
+  // Make interval to an integer
+  interval = (interval = interval >> 0) < 0 ? 0 : interval;
   // Make recordError to boolean
   recordError = Boolean(recordError);
   /**
@@ -117,7 +104,7 @@ function createQueue(options: Options) {
   function handleSingleTaskResult(result, resultIndex) {
     hasFinishedCount++;
     finished[resultIndex] = result;
-    taskCb(result, resultIndex);
+    currentState === "running" && taskCb(result, resultIndex);
 
     if (currentState === "pause" || currentState === "init") {
       return;

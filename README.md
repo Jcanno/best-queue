@@ -32,13 +32,13 @@ const { createQueue } = require("best-queue");
 
 ## **API**
 
-| Attrubute           | Description                                                    | Type                                    | Default                                                                           |
-| :------------------ | -------------------------------------------------------------- | :-------------------------------------- | --------------------------------------------------------------------------------- |
-| options             | create a queue by options                                      | Object                                  | {<br>max: 1, <br>interval: 0,<br>taskCb: function (){}<br>recordError: false<br>} |
-| options.max         | max concurrence task at the same time, default and min to 1    | Number                                  | 1                                                                                 |
-| options.interval    | the interval time between tow tasks(milliscond), default to 0  | Number                                  | 0                                                                                 |
-| options.taskCb      | the callback when one task finished                            | Function(result: any, index: number) {} | function() {}                                                                     |
-| options.recordError | record error task instead of reject queue when task gone error | Boolean                                 | false                                                                             |
+| Attrubute           | Description                                                                    | Type                                    | Default                                                                           |
+| :------------------ | ------------------------------------------------------------------------------ | :-------------------------------------- | --------------------------------------------------------------------------------- |
+| options             | create a queue by options                                                      | Object                                  | {<br>max: 1, <br>interval: 0,<br>taskCb: function (){}<br>recordError: false<br>} |
+| options.max         | max concurrence task at the same time, default and min to 1                    | Number                                  | 1                                                                                 |
+| options.interval    | the interval time between tow tasks(milliscond), default to 0                  | Number                                  | 0                                                                                 |
+| options.taskCb      | the callback when one task finished only called when state of queue is running | Function(result: any, index: number) {} | function() {}                                                                     |
+| options.recordError | record error task instead of reject queue when task gone error                 | Boolean                                 | false                                                                             |
 
 | Method     | Description                                                                                              | Type                                        |
 | ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
