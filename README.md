@@ -101,7 +101,7 @@ queue.result().then((result) => {
 setTimeout(() => {
   // queue paused after first task done, it will rerun the queue
   queue.resume();
-  // then clear queue, resovle queue with `CLEAR` result
+  // then clear queue, resolve queue with `CLEAR` result
   queue.clear();
 }, 1500);
 ```
