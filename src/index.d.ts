@@ -1,4 +1,4 @@
-import { State, TaskNode, Options } from "./types";
+import { Subscribe, Listener } from "./types";
 import { Queue } from "./index";
 
-export { State, Queue, TaskNode, Options };
+export { Queue, Subscribe, Listener };

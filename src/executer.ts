@@ -1,4 +1,4 @@
-import { IExecuter, TaskNode } from "./types";
+import { IExecuter, Dispatch } from "./types";
 
 /**
  * Execute single task, when a task done, put the result of task into finished
@@ -14,25 +14,19 @@ import { IExecuter, TaskNode } from "./types";
  * @param resultIndex Make the order of finished be same to the order of queue
  */
 class Executer implements IExecuter {
-  onSuccess: (result: any, resultIndex: number) => void;
-  onError: (error: any, resultIndex: number) => void;
+  dispatch: Dispatch;
 
-  constructor(onSuccess, onError) {
-    this.onSuccess = onSuccess;
-    this.onError = onError;
+  constructor(dispatch) {
+    this.dispatch = dispatch;
   }
 
-  handle(taskNode: TaskNode, resultIndex: number) {
-    const taskHandle = taskNode.handle;
-
-    Promise.resolve(
-      typeof taskHandle === "function" ? taskHandle() : taskHandle
-    )
+  handle(task: unknown, resultIndex: number) {
+    Promise.resolve(typeof task === "function" ? task() : task)
       .then((res) => {
-        this.onSuccess(res, resultIndex);
+        this.dispatch("success", res, resultIndex);
       })
       .catch((err) => {
-        this.onError(err, resultIndex);
+        this.dispatch("error", err, resultIndex);
       });
   }
 }
