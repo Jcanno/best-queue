@@ -1,13 +1,9 @@
 import { createQueue } from "../src/index";
 
-describe("type and value check", () => {
-  test("can not call result with empty queue", () => {
-    const queue = createQueue({
-      max: 1,
-    });
-
-    expect(() => {
-      queue.result();
-    }).toThrowError("should add task and run the currentQueue");
+describe("params check", () => {
+  test("empty array tasks", async () => {
+    const queue = createQueue([]);
+    queue.pause();
+    await expect(queue).resolves.toEqual([]);
   });
 });

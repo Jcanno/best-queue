@@ -77,12 +77,12 @@ function createQueue<R = any, E = any>(
   }
 
   async function next() {
-    const hasNextTask =
+    const hasNextTask = () =>
       currentIndex < currentQueue.length - 1 && currentState === "running";
 
-    if (hasNextTask) {
+    if (hasNextTask()) {
       await wait(interval);
-      hasNextTask &&
+      hasNextTask() &&
         executer.handle(currentQueue[++currentIndex], currentIndex);
     }
   }
@@ -119,8 +119,11 @@ function createQueue<R = any, E = any>(
   // Get paused queue to resume
   // Should start next of currentIndex
   function resume() {
-    if (currentState === "pause") {
-      if (currentIndex === currentQueue.length - 1) {
+    const isPaused = currentState === "pause";
+    const resumeWithNoNextTask = currentIndex === currentQueue.length - 1;
+
+    if (isPaused) {
+      if (resumeWithNoNextTask) {
         setState("finish");
         resolveFn(finished);
         return;
@@ -131,13 +134,6 @@ function createQueue<R = any, E = any>(
     }
   }
 
-  /**
-   * @returns {State} get the state of queue
-   */
-  function getState(): State {
-    return currentState;
-  }
-
   subscribe((taskStatus, data, index) => {
     taskStatus === "success" ? onSuccess(data, index) : onError(data, index);
   });
@@ -145,11 +141,15 @@ function createQueue<R = any, E = any>(
   const enhanceQueueApi = {
     pause,
     resume,
-    getState,
     subscribe,
   };
 
-  const queue = Object.assign(new Promise(promiseExecuter), enhanceQueueApi);
+  // just resolve [] when tasks is empty
+  const emptyTaskArray = Array.isArray(tasks) && tasks.length === 0;
+  const queue = Object.assign(
+    emptyTaskArray ? Promise.resolve([]) : new Promise(promiseExecuter),
+    enhanceQueueApi
+  );
 
   return queue;
 }

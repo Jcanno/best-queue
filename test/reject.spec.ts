@@ -1,119 +1,89 @@
-import { createQueue } from '../src/index';
-import { genPromise, genRejectPromise } from './utils';
+import { createQueue } from "../src/index";
+import { genPromise, genRejectPromise } from "./utils";
 
-describe('one concurrence task running reject', () => {
-	test('reject', () => {
-		const queue = createQueue({
-			max: 1
-		});
-		
-		queue.add(genPromise(100));
-		queue.add(genRejectPromise(200));
-		queue.run();
-		return expect(queue.result()).rejects.toBe(200);
-	});
+describe("one concurrence task running reject", () => {
+  test("reject", () => {
+    const asyncTasks = [genPromise(100), genRejectPromise(200)];
+    const queue = createQueue(asyncTasks);
+
+    return expect(queue).rejects.toBe(200);
+  });
 });
 
-describe('one more concurrence tasks running reject', () => {
-	test('one reject task', async() => {
-		const queue = createQueue({
-			max: 2
-		});
-		
-		queue.add(genPromise(100));
-		queue.add(genPromise(300));
-		queue.add(genRejectPromise(200));
-		queue.run();
-		try {
-			await queue.result();
-		}catch(err) {
-			const state = queue.getState();
+describe("one more concurrence tasks running reject", () => {
+  test("one reject task", async () => {
+    const asyncTasks = [
+      genPromise(100),
+      genPromise(300),
+      genRejectPromise(200),
+    ];
+    const queue = createQueue(asyncTasks, { max: 2 });
+    try {
+      await queue;
+    } catch (err) {
+      expect(err).toBe(200);
+    }
+  });
 
-			expect(state).toBe('error');
-			expect(err).toBe(200);
-		}
-	});
+  test("one more reject tasks", async () => {
+    const asyncTasks = [
+      genPromise(100),
+      genPromise(100),
+      genRejectPromise(200),
+      genRejectPromise(100),
+    ];
+    const queue = createQueue(asyncTasks, { max: 2 });
 
-	test('one more reject tasks', async() => {
-		const queue = createQueue({
-			max: 2
-		});
-
-		queue.add(genPromise(100));
-		queue.add(genPromise(100));
-		queue.add(genRejectPromise(200));
-		queue.add(genRejectPromise(100));
-		queue.run();
-		try {
-			await queue.result();
-		}catch(err) {
-			const state = queue.getState();
-
-			expect(state).toBe('error');
-			expect(err).toBe(100);
-		}
-	});
+    try {
+      await queue;
+    } catch (err) {
+      expect(err).toBe(100);
+    }
+  });
 });
 
-describe('skip error', () => {
-	test('skip one last error', () => {
-		const queue = createQueue({
-			max: 1,
-			recordError: true
-		});
-		
-		queue.add(genPromise(100));
-		queue.add(genRejectPromise(200));
-		queue.run();
+describe("skip error", () => {
+  test("skip one last error", () => {
+    const asyncTasks = [genPromise(100), genRejectPromise(200)];
+    const queue = createQueue(asyncTasks, { max: 2, recordError: true });
+    const err = new Error("200");
 
-		const err = new Error('200');
+    return expect(queue).resolves.toEqual([100, err]);
+  });
 
-		return expect(queue.result()).resolves.toEqual([100, err]);
-	});
+  test("skip not one last error", () => {
+    const asyncTasks = [
+      genPromise(100),
+      genRejectPromise(200),
+      genPromise(100),
+    ];
+    const queue = createQueue(asyncTasks, { max: 1, recordError: true });
+    const err = new Error("200");
 
-	test('skip not one last error', () => {
-		const queue = createQueue({
-			max: 1,
-			recordError: true
-		});
-		
-		queue.add(genPromise(100));
-		queue.add(genRejectPromise(200));
-		queue.add(genPromise(100));
-		queue.run();
+    return expect(queue).resolves.toEqual([100, err, 100]);
+  });
 
-		const err = new Error('200');
+  test("skip not err instance", () => {
+    const err = new Error("200");
+    const asyncTasks = [
+      genPromise(100),
+      genRejectPromise(err),
+      genPromise(100),
+    ];
+    const queue = createQueue(asyncTasks, { max: 1, recordError: true });
 
-		return expect(queue.result()).resolves.toEqual([100, err, 100]);
-	});
+    return expect(queue).resolves.toEqual([100, err, 100]);
+  });
 
-	test('skip not err instance', () => {
-		const queue = createQueue({
-			max: 1,
-			recordError: true
-		});
-		const err = new Error('200');
+  test("skip error in 2 concurrence", () => {
+    const err = new Error("200");
+    const asyncTasks = [
+      genPromise(100),
+      genRejectPromise(err),
+      genPromise(100),
+    ];
+    const queue = createQueue(asyncTasks, { max: 2, recordError: true });
 
-		queue.add(genPromise(100));
-		queue.add(genRejectPromise(err));
-		queue.add(genPromise(100));
-		queue.run();
-
-		return expect(queue.result()).resolves.toEqual([100, err, 100]);
-	});
-
-	test('skip error in 2 concurrence', () => {
-		const queue = createQueue({
-			max: 2,
-			recordError: true
-		});
-		const err = new Error('200');
-
-		queue.add(genPromise(100));
-		queue.add(genRejectPromise(err));
-		queue.add(genPromise(100));
-		queue.run();
-
-		return expect(queue.result()).resolves.toEqual([100, err, 100]);
-	});
+    return expect(queue).resolves.toEqual([100, err, 100]);
+  });
 });
