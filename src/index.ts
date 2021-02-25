@@ -8,13 +8,14 @@ function createQueue<R = any, E = any>(
 ) {
   const finished = [];
   const currentQueue: unknown[] = Array.isArray(tasks) ? [...tasks] : [tasks];
-  const listeners = new Set<Listener>();
   let { max = 1, interval = 0, recordError = false } = options;
   let currentState: State = "init";
   let currentIndex = 0;
   let hasFinishedCount = 0;
   let resolveFn: (v: R[]) => void = () => undefined;
   let rejectFn: (e: E) => void = () => undefined;
+  let currentListeners = [];
+  let nextListeners = currentListeners;
 
   // Make max to an integer
   max = (max = max >> 0) < 1 ? 1 : max;
@@ -87,13 +88,27 @@ function createQueue<R = any, E = any>(
     }
   }
 
-  const subscribe: Subscribe = function subscribe(listener: Listener) {
-    listeners.add(listener);
+  function ensureCanMutateNextListeners() {
+    if (nextListeners === currentListeners) {
+      nextListeners = currentListeners.slice();
+    }
+  }
 
-    return () => listeners.delete(listener);
+  const subscribe: Subscribe = function subscribe(listener: Listener) {
+    ensureCanMutateNextListeners();
+    nextListeners.push(listener);
+
+    return function unsubscribe() {
+      ensureCanMutateNextListeners();
+      const index = nextListeners.indexOf(listener);
+      nextListeners.splice(index, 1);
+      currentListeners = null;
+    };
   };
 
   const dispatch: Dispatch = function dispatch(taskStatus, data, resultIndex) {
+    const listeners = (currentListeners = nextListeners);
+
     listeners.forEach((listener) => {
       listener(
         taskStatus,
