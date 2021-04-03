@@ -24,3 +24,9 @@ export type Dispatch = (
 ) => void
 
 export type Subscribe = (listener: Listener) => void
+
+export interface EnhanceQueue<R> extends Promise<R> {
+  pause: () => void
+  resume: () => void
+  subscribe: Subscribe
+}

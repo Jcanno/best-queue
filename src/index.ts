@@ -1,11 +1,18 @@
-import { State, Options, Subscribe, Listener, Dispatch } from "./types"
+import {
+  State,
+  Options,
+  Subscribe,
+  Listener,
+  Dispatch,
+  EnhanceQueue,
+} from "./types"
 import { wait } from "./utils/wait"
 import Executer from "./executer"
 
 function createQueue<R = unknown, E = unknown>(
   tasks: unknown[],
   options: Options = {}
-): Promise<R[]> {
+): EnhanceQueue<R[]> {
   const finished = []
   const currentQueue: unknown[] = Array.isArray(tasks) ? [...tasks] : [tasks]
   let { max = 1, interval = 0, recordError = false } = options
@@ -168,7 +175,5 @@ function createQueue<R = unknown, E = unknown>(
 
   return queue
 }
-
-export type Queue = ReturnType<typeof createQueue>
 
 export { createQueue }
