@@ -16,20 +16,14 @@
     "types"
   ],
   "keywords": [
-    "enqueue",
     "concurrency",
     "task",
     "async",
-    "request",
     "throttle",
     "limit",
-    "request-queue",
     "promise",
     "promise-queue",
-    "axios",
-    "queue",
-    "queue-request",
-    "queue-promise"
+    "queue"
   ],
   "author": "Jacano",
   "license": "MIT",
