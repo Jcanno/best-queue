@@ -1,13 +1,13 @@
-export type State = "init" | "running" | "pause" | "finish" | "error";
+export type State = "init" | "running" | "pause" | "finish" | "error"
 
 export interface Options {
-  max?: number;
-  interval?: number;
-  recordError?: boolean;
+  max?: number
+  interval?: number
+  recordError?: boolean
 }
 
 export interface IExecuter {
-  handle(task: unknown, resultIndex: number): void;
+  handle(task: unknown, resultIndex: number): void
 }
 
 export type Listener = (
@@ -15,12 +15,18 @@ export type Listener = (
   data: any,
   index: number,
   progress: number
-) => void;
+) => void
 
 export type Dispatch = (
   taskStatus: "success" | "error",
   data: any,
   index: number
-) => void;
+) => void
 
-export type Subscribe = (listener: Listener) => void;
+export type Subscribe = (listener: Listener) => void
+
+export interface EnhanceQueue<R> extends Promise<R> {
+  pause: () => void
+  resume: () => void
+  subscribe: Subscribe
+}

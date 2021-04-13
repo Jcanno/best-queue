@@ -1,12 +1,12 @@
-import { State, IExecuter, Options, Dispatch, Listener } from "./types"
+import { State, IExecuter, Options } from "./types"
 import { wait } from "./utils/wait"
 
-export class TaskQueue<R = unknown, E = unknown> {
+export class TaskQueue<R = unknown> {
   count: number = 0
   index: number = 0
   state: State = "init"
   resolveFn: (v: R[]) => void = () => undefined
-  rejectFn: (e: E) => void = () => undefined
+  rejectFn: (e: unknown) => void = () => undefined
   hasFinishedCount: number = 0
   private tasks: Record<number, unknown> = {}
   private executer: IExecuter
@@ -48,15 +48,12 @@ export class TaskQueue<R = unknown, E = unknown> {
 
   // Pause the running queue
   pause() {
-    console.log("pause coming")
-
     this.state === "running" && this.setState("pause")
   }
 
   // Change state of queue
   private setState(nextState: State) {
     this.state = nextState
-    console.log("nextstate:", this.state)
   }
 
   run() {
@@ -89,8 +86,6 @@ export class TaskQueue<R = unknown, E = unknown> {
     this.hasFinishedCount++
     this.finished[resultIndex] = result
     const hasFinished = this.hasFinishedCount === this.count
-
-    console.log(this.state)
 
     if (this.state === "pause" || this.state === "init") {
       return

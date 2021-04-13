@@ -1,15 +1,13 @@
-import { Options, Subscribe, Listener, Dispatch } from "./types"
+import { Options, Subscribe, Listener, Dispatch, EnhanceQueue } from "./types"
 import Executer from "./executer"
 import { TaskQueue } from "./queue"
 
-function createQueue<R = unknown, E = unknown>(
+function createQueue<R = unknown>(
   tasks: unknown[],
   options: Options = {}
-) {
+): EnhanceQueue<R[]> {
   const dispatch: Dispatch = function dispatch(taskStatus, data, resultIndex) {
     const listeners = (currentListeners = nextListeners)
-
-    console.log(listeners)
 
     listeners.forEach((listener) => {
       listener(
@@ -38,13 +36,16 @@ function createQueue<R = unknown, E = unknown>(
   let currentListeners = []
   let nextListeners = currentListeners
 
-  const currentQueue = new TaskQueue(tasks, executer, {
+  const currentQueue = new TaskQueue<R>(tasks, executer, {
     max: (max = max >> 0) < 1 ? 1 : max,
     interval: (interval = interval >> 0) < 0 ? 0 : interval,
     recordError,
   })
 
-  function promiseExecuter(resolve: (v: R[]) => void, reject: (e: E) => void) {
+  function promiseExecuter(
+    resolve: (v: R[]) => void,
+    reject: (e: unknown) => void
+  ) {
     currentQueue.resolveFn = resolve
     currentQueue.rejectFn = reject
 
@@ -65,8 +66,8 @@ function createQueue<R = unknown, E = unknown>(
   })
 
   const enhanceQueueApi = {
-    pause: currentQueue.pause,
-    resume: currentQueue.resume,
+    pause: () => currentQueue.pause(),
+    resume: () => currentQueue.resume(),
     subscribe,
   }
 
@@ -79,7 +80,5 @@ function createQueue<R = unknown, E = unknown>(
 
   return queue
 }
-
-export type Queue = ReturnType<typeof createQueue>
 
 export { createQueue }

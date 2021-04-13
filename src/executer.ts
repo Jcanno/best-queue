@@ -1,34 +1,25 @@
-import { IExecuter, Dispatch } from "./types";
+import { IExecuter, Dispatch } from "./types"
 
 /**
- * Execute single task, when a task done, put the result of task into finished
- * run taskCb of options(taskCb may pause the queue, it's just decided by user),
- * so after that if state of queue is Paused, queue stop execute task,
- * if not and queue is over, change state and resolve currentPromise,
- * if queue is not over, check currentIndex and currentState,
- * after waiting the inverval, check currentIndex and currentState again(we don't
- * know if the queue is over ater wait), then find next task by currentIndex, execute
- * next task in a loop
- *
  * @param task Current running task
  * @param resultIndex Make the order of finished be same to the order of queue
  */
 class Executer implements IExecuter {
-  dispatch: Dispatch;
+  dispatch: Dispatch
 
   constructor(dispatch) {
-    this.dispatch = dispatch;
+    this.dispatch = dispatch
   }
 
   handle(task: unknown, resultIndex: number) {
     Promise.resolve(typeof task === "function" ? task() : task)
       .then((res) => {
-        this.dispatch("success", res, resultIndex);
+        this.dispatch("success", res, resultIndex)
       })
       .catch((err) => {
-        this.dispatch("error", err, resultIndex);
-      });
+        this.dispatch("error", err, resultIndex)
+      })
   }
 }
 
-export default Executer;
+export default Executer

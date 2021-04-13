@@ -1,4 +1,3 @@
-import { Subscribe, Listener } from "./types";
-import { Queue } from "./index";
+import { Subscribe, Listener, Options } from "./types"
 
-export { Queue, Subscribe, Listener };
+export { Subscribe, Listener, Options }
