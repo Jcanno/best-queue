@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-use-before-define */
 import { Options, Subscribe, Listener, Dispatch, EnhanceQueue } from "./types"
 import Executer from "./executer"
 import { TaskQueue } from "./queue"

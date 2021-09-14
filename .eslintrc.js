@@ -1,15 +1,15 @@
 module.exports = {
   root: true,
   env: {
-		es6: true, 
-		node: true, 
+		es6: true,
+		node: true,
 		browser: true,
 		jest: true
 	},
   extends: [
 		"eslint:recommended",
 		"plugin:@typescript-eslint/recommended",
-    "scales"
+		"prettier/@typescript-eslint"
 	],
 	rules: {
 		"no-empty-function": 0,
