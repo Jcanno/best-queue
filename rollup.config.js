@@ -1,23 +1,23 @@
-import typescript from 'rollup-plugin-typescript2';
+import typescript from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser'
 
 export default {
-	input: 'src/index.ts',
-	output: [
+  input: 'src/index.ts',
+  output: [
     {
       file: 'dist/index.js',
       format: 'umd',
-      name: 'BestQueue'
+      name: 'BestQueue',
     },
     {
       file: 'es/index.js',
       format: 'es',
     },
   ],
-	plugins: [
-		typescript({
+  plugins: [
+    typescript({
       tsconfig: 'tsconfig.json',
-      useTsconfigDeclarationDir: true
+      useTsconfigDeclarationDir: true,
     }),
     terser({
       compress: {
@@ -27,5 +27,5 @@ export default {
         warnings: false,
       },
     }),
-	]
-};
+  ],
+}
