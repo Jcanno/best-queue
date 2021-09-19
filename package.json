@@ -3,6 +3,7 @@
   "version": "2.0.3",
   "description": "Make async task in a queue",
   "main": "dist/index.js",
+  "module": "es/index.js",
   "scripts": {
     "build": "rollup -c",
     "test": "jest --coverage",

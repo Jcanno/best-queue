@@ -1,6 +1,7 @@
 node_modules
 queue-request.js
 dist
+es
 test.js
 types
 coverage
