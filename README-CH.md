@@ -42,7 +42,7 @@ const { createQueue } = require("best-queue");
 | options.recordError           | 当任务出错时记录错误而不是结束队列，保持队列能够容错 | Boolean                                              | false                                                                             |
 | pause()                       | 暂停队列, 队列会停止执行任务                         | Function(): void                                     |
 | resume()                      | 继续执行队列                                         | Function(): void                                     |
-| subscribe(listener: Listener) | 每个子任务完成时会触发所有监听                       | Function((taskStatus: 'success' \| 'error', data: any, index: number, progress: number) => void): void               |
+| subscribe(listener: Listener) | 每个子任务完成时会触发所有监听                       | Function((taskStatus: 'success' \| 'error', data: unknown, taskIndex: number, progress: number) => void): () => void               |
 
 ## 例子
 
@@ -73,9 +73,9 @@ queue.then((result) => {
   console.log(result);
 });
 
-queue.subscribe((status, data, index) => {
+const unsubscribe = queue.subscribe(({ taskIndex }) => {
   // 队列会在第一个任务后暂停
-  index === 0 && queue.pause();
+  taskIndex === 0 && queue.pause();
 });
 
 setTimeout(() => {

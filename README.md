@@ -41,7 +41,7 @@ const { createQueue } = require("best-queue");
 | options.recordError              | record error task instead of reject queue when task gone error | Boolean                                              | false                                                    |
 | pause()                          | `pause` the queue, queue stop to execute task                  | Function(): void                                     |
 | resume()                         | rerun the queue                                                | Function(): void                                     |
-| subscribe(listener: Listener)  | listener fired a task done                           | Function((taskStatus: 'success' \| 'error', data: any, index: number, progress: number) => void): void                                         |
+| subscribe(listener: Listener)  | listener fired a task done                           | Function(({taskStatus: 'success' \| 'error', data: unknown, taskIndex: number, progress: number}) => void): () => void                                         |
 
 ## Example
 
@@ -72,9 +72,9 @@ queue.then((result) => {
   console.log(result);
 });
 
-queue.subscribe((status, data, index) => {
+const unsubscribe = queue.subscribe(({ taskIndex }) => {
   // queue will be paused after first task
-  index === 0 && queue.pause();
+  taskIndex === 0 && queue.pause();
 });
 
 setTimeout(() => {

@@ -1,14 +1,12 @@
 {
   "name": "best-queue",
-  "version": "3.0.0",
+  "version": "3.0.0-beta.1",
   "description": "Make async task in a queue",
   "main": "dist/index.js",
   "module": "es/index.js",
   "scripts": {
     "build": "rollup -c",
     "test": "jest --coverage",
-    "release": "npm run build && npm publish",
-    "release:beta": "npm run build && npm publish --tag=beta",
     "commit": "git-cz"
   },
   "types": "types/index.d.ts",
