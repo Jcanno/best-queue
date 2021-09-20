@@ -1,7 +1,7 @@
 type ListenerOptions<D = unknown> = {
   taskStatus: 'success' | 'error'
   data: D extends ArrayLike<any> ? D[number] : unknown
-  index: number
+  taskIndex: number
   progress: number
 }
 

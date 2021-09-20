@@ -1,4 +1,3 @@
-import Executer from './executer'
 import { Scheduler } from './scheduler'
 import { Subscriber, Listener } from './subscriber'
 
@@ -34,9 +33,8 @@ function createQueue<R = unknown>(tasks: unknown[], options: Options = {}): Enha
     throw new TypeError('tasks must be a array')
   }
 
-  let { max = 1, interval = 0, recordError = false } = options || {}
+  let { max = 1, interval = 0, recordError = false } = typeof options === 'object' ? options : {}
   const subscriber = new Subscriber()
-  const executer = new Executer(subscriber)
   const scheduler = new Scheduler<QueueResult<R>>(
     tasks,
     {
@@ -44,11 +42,8 @@ function createQueue<R = unknown>(tasks: unknown[], options: Options = {}): Enha
       interval: (interval = interval >> 0) < 0 ? 0 : interval,
       recordError,
     },
-    executer,
     subscriber,
   )
-
-  scheduler.subscribeBuildInListener()
 
   const enhanceQueueApi = {
     pause: () => scheduler.pause(),

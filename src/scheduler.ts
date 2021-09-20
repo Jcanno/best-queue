@@ -1,7 +1,6 @@
-import { Subscriber, Listener } from './subscriber'
+import { Subscriber } from './subscriber'
 import { Options, QueueResult } from './index'
 import { wait } from './utils/wait'
-import { Executer } from './executer'
 
 enum State {
   'Init',
@@ -19,14 +18,12 @@ export class Scheduler<R = unknown> {
   private resolveFn: (v: QueueResult<R>) => void = () => undefined
   private rejectFn: (e: unknown) => void = () => undefined
   private tasks: Record<number, unknown> = {}
-  private executer: Executer
   private subscriber: Subscriber
   private options: Options
   private finished = []
 
-  constructor(tasks: unknown[], options: Options, executer: Executer, subscriber: Subscriber) {
+  constructor(tasks: unknown[], options: Options, subscriber: Subscriber) {
     tasks.forEach((task) => this.enqueue(task))
-    this.executer = executer
     this.subscriber = subscriber
     this.options = options
   }
@@ -78,7 +75,7 @@ export class Scheduler<R = unknown> {
 
     for (let i = 0; i < concurrency; i++) {
       this.currentTaskIndex = startIndex + i
-      this.executer.handle(this.tasks[this.currentTaskIndex], this.currentTaskIndex)
+      this.handleTask(this.tasks[this.currentTaskIndex], this.currentTaskIndex)
     }
   }
 
@@ -88,8 +85,7 @@ export class Scheduler<R = unknown> {
 
     if (hasNextTask()) {
       await wait(this.options.interval)
-      hasNextTask() &&
-        this.executer.handle(this.tasks[++this.currentTaskIndex], this.currentTaskIndex)
+      hasNextTask() && this.handleTask(this.tasks[++this.currentTaskIndex], this.currentTaskIndex)
     }
   }
 
@@ -98,7 +94,7 @@ export class Scheduler<R = unknown> {
     this.finished[resultIndex] = result
     const hasFinished = this.hasFinishedCount === this.count
 
-    if (this.state === State.Pause || this.state === State.Init) {
+    if ([State.Pause, State.Init].includes(this.state)) {
       return
     }
 
@@ -135,16 +131,33 @@ export class Scheduler<R = unknown> {
     this.run()
   }
 
-  subscribeBuildInListener() {
-    const buildInListener: Listener<R> = ({ taskStatus, data, index }) => {
-      taskStatus === 'success'
-        ? this.onSingleTaskSuccess(data, index)
-        : this.onSingleTaskError(data, index)
-    }
-    this.subscriber.subscribe(buildInListener)
-  }
-
   isEmptyQueue() {
     return this.count === 0
+  }
+
+  private getProgress(): number {
+    return this.hasFinishedCount / this.count
+  }
+
+  private handleTask(task: unknown, resultIndex: number) {
+    Promise.resolve(typeof task === 'function' ? task() : task)
+      .then((res) => {
+        this.onSingleTaskSuccess(res, resultIndex)
+        this.subscriber.dispatch({
+          taskStatus: 'success',
+          data: res,
+          taskIndex: resultIndex,
+          progress: this.getProgress(),
+        })
+      })
+      .catch((err) => {
+        this.onSingleTaskError(err, resultIndex)
+        this.subscriber.dispatch({
+          taskStatus: 'error',
+          data: err,
+          taskIndex: resultIndex,
+          progress: this.getProgress(),
+        })
+      })
   }
 }
