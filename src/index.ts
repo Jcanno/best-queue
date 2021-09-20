@@ -1,82 +1,66 @@
-/* eslint-disable @typescript-eslint/no-use-before-define */
-import { Options, Subscribe, Listener, Dispatch, EnhanceQueue } from "./types"
-import Executer from "./executer"
-import { TaskQueue } from "./queue"
+import Executer from './executer'
+import { Scheduler } from './scheduler'
+import { Subscriber, Listener } from './subscriber'
 
-function createQueue<R = unknown>(
-  tasks: unknown[],
-  options: Options = {}
-): EnhanceQueue<R[]> {
-  const dispatch: Dispatch = function dispatch(taskStatus, data, resultIndex) {
-    const listeners = (currentListeners = nextListeners)
+export interface Options {
+  max?: number
+  interval?: number
+  recordError?: boolean
+}
+type PromiseReturn<R> = R extends () => infer P
+  ? P extends Promise<infer Result>
+    ? Result
+    : P
+  : R extends Promise<infer S>
+  ? S
+  : R
 
-    listeners.forEach((listener) => {
-      listener(
-        taskStatus,
-        data,
-        resultIndex,
-        currentQueue.hasFinishedCount / currentQueue.count
-      )
-    })
+export type QueueResult<R> = R extends [infer First, ...infer Rest]
+  ? [PromiseReturn<First>, ...QueueResult<Rest>]
+  : R extends []
+  ? R
+  : R extends Array<infer S>
+  ? PromiseReturn<S>[]
+  : R[]
+
+interface EnhanceQueue<R> extends Promise<QueueResult<R>> {
+  pause: () => void
+  resume: () => void
+  subscribe: (listener: Listener<QueueResult<R>>) => void
+}
+
+function createQueue<R = unknown>(tasks: unknown[], options: Options = {}): EnhanceQueue<R> {
+  if (!Array.isArray(tasks)) {
+    throw new TypeError('tasks must be a array')
   }
 
-  const subscribe: Subscribe = function subscribe(listener: Listener) {
-    ensureCanMutateNextListeners()
-    nextListeners.push(listener)
+  let { max = 1, interval = 0, recordError = false } = options || {}
+  const subscriber = new Subscriber()
+  const executer = new Executer(subscriber)
+  const scheduler = new Scheduler<QueueResult<R>>(
+    tasks,
+    {
+      max: (max = max >> 0) < 1 ? 1 : max,
+      interval: (interval = interval >> 0) < 0 ? 0 : interval,
+      recordError,
+    },
+    executer,
+    subscriber,
+  )
 
-    return function unsubscribe() {
-      ensureCanMutateNextListeners()
-      const index = nextListeners.indexOf(listener)
-      nextListeners.splice(index, 1)
-      currentListeners = null
-    }
-  }
-  const executer = new Executer(dispatch)
-
-  let { max = 1, interval = 0, recordError = false } = options
-  let currentListeners = []
-  let nextListeners = currentListeners
-
-  const currentQueue = new TaskQueue<R>(tasks, executer, {
-    max: (max = max >> 0) < 1 ? 1 : max,
-    interval: (interval = interval >> 0) < 0 ? 0 : interval,
-    recordError,
-  })
-
-  function promiseExecuter(
-    resolve: (v: R[]) => void,
-    reject: (e: unknown) => void
-  ) {
-    currentQueue.resolveFn = resolve
-    currentQueue.rejectFn = reject
-
-    // runTasks()
-    currentQueue.run()
-  }
-
-  function ensureCanMutateNextListeners() {
-    if (nextListeners === currentListeners) {
-      nextListeners = currentListeners.slice()
-    }
-  }
-
-  subscribe((taskStatus, data, index) => {
-    taskStatus === "success"
-      ? currentQueue.onSuccess(data, index)
-      : currentQueue.onError(data, index)
-  })
+  scheduler.subscribeBuildInListener()
 
   const enhanceQueueApi = {
-    pause: () => currentQueue.pause(),
-    resume: () => currentQueue.resume(),
-    subscribe,
+    pause: () => scheduler.pause(),
+    resume: () => scheduler.resume(),
+    subscribe: (listener: Listener) => subscriber.subscribe(listener),
   }
 
-  // just resolve [] when tasks is empty
-  const emptyQueue = currentQueue.count === 0
   const queue = Object.assign(
-    emptyQueue ? Promise.resolve([]) : new Promise<R[]>(promiseExecuter),
-    enhanceQueueApi
+    scheduler.isEmptyQueue()
+      ? Promise.resolve([])
+      : new Promise<any>((r, j) => scheduler.promiseExecuter(r, j)),
+    enhanceQueueApi,
   )
 
   return queue
