@@ -1,5 +1,6 @@
 import typescript from 'rollup-plugin-typescript2'
 import { terser } from 'rollup-plugin-terser'
+import pkg from './package.json'
 
 export default {
   input: 'src/index.ts',
@@ -25,6 +26,9 @@ export default {
         unsafe: true,
         unsafe_comps: true,
         warnings: false,
+      },
+      format: {
+        comments: RegExp(`${pkg.name}`),
       },
     }),
   ],
