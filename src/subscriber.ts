@@ -29,19 +29,21 @@ export class Subscriber {
    * @param listener listener to add
    * @returns        unsubscribe
    */
-  subscribe(listener: Listener) {
+  subscribe(listener: Listener): () => void {
     if (typeof listener !== 'function') {
       throw new Error('listener must be a function')
     }
     this.ensureCanMutateNextListeners()
     this.nextListeners.push(listener)
 
-    return function unsubscribe() {
+    const unsubscribe = function unsubscribe() {
       this.ensureCanMutateNextListeners()
       const index = this.nextListeners.indexOf(listener)
       this.nextListeners.splice(index, 1)
       this.currentListeners = null
-    }
+    }.bind(this)
+
+    return unsubscribe
   }
 
   /**

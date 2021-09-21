@@ -14,6 +14,15 @@ type PromiseReturn<R> = R extends () => infer P
   ? S
   : R
 
+/**
+ * Create Queue Result Type
+ * number                          -> number[]
+ * Promise<string>                 -> string[]
+ * () => Promise<stirng>           -> string[]
+ * [string, number]                -> [string, number]
+ * [Promise<string>, number]       -> [string, number]
+ * [() => Promise<stirng>, number] -> [string, number]
+ */
 export type QueueResult<R> = R extends [infer First, ...infer Rest]
   ? [PromiseReturn<First>, ...QueueResult<Rest>]
   : R extends []
@@ -25,7 +34,7 @@ export type QueueResult<R> = R extends [infer First, ...infer Rest]
 interface EnhanceQueue<R> extends Promise<QueueResult<R>> {
   pause: () => void
   resume: () => void
-  subscribe: (listener: Listener<QueueResult<R>>) => void
+  subscribe: (listener: Listener<QueueResult<R>>) => () => void
 }
 
 function createQueue<R = unknown>(tasks: unknown[], options: Options = {}): EnhanceQueue<R> {
@@ -46,9 +55,9 @@ function createQueue<R = unknown>(tasks: unknown[], options: Options = {}): Enha
   )
 
   const enhanceQueueApi = {
-    pause: () => scheduler.pause(),
-    resume: () => scheduler.resume(),
-    subscribe: (listener: Listener) => subscriber.subscribe(listener),
+    pause: scheduler.pause.bind(scheduler),
+    resume: scheduler.resume.bind(scheduler),
+    subscribe: subscriber.subscribe.bind(subscriber),
   }
 
   const queue = Object.assign(
