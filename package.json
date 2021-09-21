@@ -1,6 +1,6 @@
 {
   "name": "best-queue",
-  "version": "3.0.0-beta.1",
+  "version": "3.0.0",
   "description": "Make async task in a queue",
   "main": "dist/index.js",
   "module": "es/index.js",
