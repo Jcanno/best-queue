@@ -10,6 +10,8 @@ enum State {
   'Error',
 }
 
+const InitErrorData = Symbol()
+
 export class Scheduler<R = unknown> {
   private count = 0
   private hasFinishedCount = 0
@@ -21,6 +23,7 @@ export class Scheduler<R = unknown> {
   private subscriber: Subscriber
   private options: Options
   private finished = []
+  private errData = InitErrorData
 
   constructor(tasks: unknown[], options: Options, subscriber: Subscriber) {
     tasks.forEach((task) => this.enqueue(task))
@@ -40,13 +43,19 @@ export class Scheduler<R = unknown> {
   // Get paused queue to resume
   // Should start next of currentIndex
   resume() {
-    const isPaused = this.state === State.Pause
+    const isPaused = this.getState() === State.Pause
     const resumeWithNoNextTask = this.currentTaskIndex === this.count - 1
 
     if (isPaused) {
       if (resumeWithNoNextTask) {
-        this.setState(State.Finish)
-        this.resolveFn(this.finished as QueueResult<R>)
+        if (this.errData !== InitErrorData) {
+          this.rejectFn(this.errData)
+          this.setState(State.Error)
+        } else {
+          this.setState(State.Finish)
+          this.resolveFn(this.finished as QueueResult<R>)
+        }
+
         return
       }
       this.setState(State.Running)
@@ -57,7 +66,7 @@ export class Scheduler<R = unknown> {
 
   // Pause the running queue
   pause() {
-    this.state === State.Running && this.setState(State.Pause)
+    this.getState() === State.Running && this.setState(State.Pause)
   }
 
   // Change state of queue
@@ -94,7 +103,7 @@ export class Scheduler<R = unknown> {
     this.finished[resultIndex] = result
     const hasFinished = this.hasFinishedCount === this.count
 
-    if ([State.Pause, State.Init].includes(this.state)) {
+    if ([State.Pause, State.Init].includes(this.getState())) {
       return
     }
 
@@ -118,8 +127,13 @@ export class Scheduler<R = unknown> {
         resultIndex,
       )
     } else {
-      this.setState(State.Error)
-      this.rejectFn(err)
+      // if queue is paused, store error data, reject queue when resume
+      if (this.getState() === State.Pause) {
+        this.errData = err as any
+      } else {
+        this.rejectFn(err)
+        this.setState(State.Error)
+      }
     }
   }
 
