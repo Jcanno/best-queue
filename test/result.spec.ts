@@ -64,3 +64,36 @@ describe('one more concurrence tasks running result', () => {
     })
   })
 })
+
+describe('task progress', () => {
+  test('test task progress for max be 1', () => {
+    let finishedTask = 0
+    const totalTasks = 4
+    const queue = createQueue(
+      [genPromise(100), genPromise(100), genPromise(300), genPromise(200)],
+      { max: 1 },
+    )
+
+    queue.subscribe(({ progress }) => {
+      finishedTask++
+      expect(progress).toEqual(finishedTask / totalTasks)
+    })
+    return queue.then((res) => {
+      expect(res).toEqual([100, 100, 300, 200])
+    })
+  })
+
+  test('test task progress for max be 2', () => {
+    let finishedTask = 0
+    const totalTasks = 3
+    const queue = createQueue([genPromise(100), genPromise(100), genPromise(300)], { max: 2 })
+
+    queue.subscribe(({ progress }) => {
+      finishedTask++
+      expect(progress).toEqual(finishedTask / totalTasks)
+    })
+    return queue.then((res) => {
+      expect(res).toEqual([100, 100, 300])
+    })
+  })
+})
