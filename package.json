@@ -1,7 +1,7 @@
 {
   "name": "best-queue",
   "version": "3.0.0",
-  "description": "Make async task in a queue",
+  "description": "Queue in runtime base promise",
   "main": "dist/index.js",
   "module": "es/index.js",
   "scripts": {
@@ -10,6 +10,7 @@
     "commit": "git-cz"
   },
   "types": "types/index.d.ts",
+  "typings": "types/index.d.ts",
   "files": [
     "dist",
     "types"
