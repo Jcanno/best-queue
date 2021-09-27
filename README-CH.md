@@ -1,4 +1,7 @@
 # **Best-Queue**
+[![license](https://img.shields.io/badge/license-MIT-green.svg)](https://www.npmjs.org/package/best-queue)
+[![downloads](https://img.shields.io/npm/dm/best-queue)](https://www.npmjs.org/package/best-queue)
+[![size](https://img.shields.io/bundlephobia/min/best-queue/3.0.0)](https://www.npmjs.org/package/best-queue)
 
 [English](https://github.com/Jcanno/best-queue)|简体中文
 
