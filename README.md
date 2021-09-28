@@ -2,12 +2,36 @@
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://www.npmjs.org/package/best-queue)
 [![downloads](https://img.shields.io/npm/dm/best-queue)](https://www.npmjs.org/package/best-queue)
 [![size](https://img.shields.io/bundlephobia/min/best-queue/3.0.0)](https://www.npmjs.org/package/best-queue)
+[![issues](https://img.shields.io/github/issues-closed/Jcanno/best-queue)](https://www.npmjs.org/package/best-queue)
+[![npm](https://img.shields.io/npm/v/best-queue)](https://www.npmjs.org/package/best-queue)
 
 English|[简体中文](https://github.com/Jcanno/best-queue/blob/master/README-CH.md)
 
 ## Introduction
 
-`best-queue` let you control async tasks in a queue.
+`best-queue` let you control tasks in a queue.
+
+It's easy to execute task one by one with interval time in queue like this:
+
+```js
+Queue -> task -> wait(interval) -> task -> wait(interval) -> task -> finish
+```
+
+How about adding async task in queue:
+
+```js
+Queue -> Promise.resolve(task) -> wait(interval) -> Promise.resolve(task) -> wait(interval) -> Promise.resolve(task) -> finish
+```
+
+What if we want to execute two tasks at the same time to support concurrency in queue:
+
+```js
+Queue -> Promise.all([Promise.resolve(task), Promise.resolve(task)]) -> wait(interval) -> Promise.all([Promise.resolve(task), Promise.resolve(task)]) -> wait(interval) -> Promise.all([Promise.resolve(task), Promise.resolve(task)]) -> finish
+```
+
+But if one async task takes too much time because of network reason, the batch of task need to wait until the slow task resolve, we can do something make queue more efficient in theory.
+
+That's `best-queue` do. See image below.
 
 ![](https://hawksights.obs.cn-east-2.myhuaweicloud.com/ceshi/1593997290864.png)
 

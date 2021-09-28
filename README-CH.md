@@ -2,12 +2,36 @@
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://www.npmjs.org/package/best-queue)
 [![downloads](https://img.shields.io/npm/dm/best-queue)](https://www.npmjs.org/package/best-queue)
 [![size](https://img.shields.io/bundlephobia/min/best-queue/3.0.0)](https://www.npmjs.org/package/best-queue)
+[![issues](https://img.shields.io/github/issues-closed/Jcanno/best-queue)](https://www.npmjs.org/package/best-queue)
+[![npm](https://img.shields.io/npm/v/best-queue)](https://www.npmjs.org/package/best-queue)
 
 [English](https://github.com/Jcanno/best-queue)|简体中文
 
 ## 介绍
 
 `best-queue`能让你用队列控制异步任务
+
+让任务在队列中一个接一个执行:
+
+```js
+Queue -> task -> wait(interval) -> task -> wait(interval) -> task -> finish
+```
+
+在队列中加入异步任务:
+
+```js
+Queue -> Promise.resolve(task) -> wait(interval) -> Promise.resolve(task) -> wait(interval) -> Promise.resolve(task) -> finish
+```
+
+让队列同时执行两个任务支持并发:
+
+```js
+Queue -> Promise.all([Promise.resolve(task), Promise.resolve(task)]) -> wait(interval) -> Promise.all([Promise.resolve(task), Promise.resolve(task)]) -> wait(interval) -> Promise.all([Promise.resolve(task), Promise.resolve(task)]) -> finish
+```
+
+但如果某个异步任务由于网络原因花费太多的时间，这一批的任务需要等待这个任务完成，理论上我们可以让队列执行上更加高效
+
+如下图:
 
 ![](https://hawksights.obs.cn-east-2.myhuaweicloud.com/ceshi/1593997266220.png)
 
