@@ -1,6 +1,6 @@
 {
   "name": "best-queue",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Queue in runtime base promise",
   "main": "dist/index.js",
   "module": "es/index.js",
@@ -13,6 +13,7 @@
   "typings": "types/index.d.ts",
   "files": [
     "dist",
+    "es",
     "types"
   ],
   "keywords": [
