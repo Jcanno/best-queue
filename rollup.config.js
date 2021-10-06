@@ -18,7 +18,7 @@ function createCommonJSConfig(input, output) {
     external,
     plugins: [
       resolve({ extensions }),
-      babelPlugin({ babelHelpers: 'bundled', extensions, comments: false }),
+      babelPlugin({ babelHelpers: 'runtime', extensions, comments: false }),
     ],
   })
 }

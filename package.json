@@ -1,6 +1,6 @@
 {
   "name": "best-queue",
-  "version": "3.0.1",
+  "version": "3.0.2-beta.3",
   "description": "Queue in runtime base promise",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -8,8 +8,7 @@
     "build": "yarn types & rollup -c",
     "prebuild": "rm -rf types es lib",
     "types": "tsc --emitDeclarationOnly",
-    "test": "jest --coverage",
-    "commit": "git-cz"
+    "test": "jest --coverage"
   },
   "types": "types/index.d.ts",
   "typings": "types/index.d.ts",
@@ -36,6 +35,7 @@
   "homepage": "https://github.com/Jcanno/best-queue#readme",
   "devDependencies": {
     "@babel/core": "^7.15.5",
+    "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/plugin-transform-typescript": "^7.15.4",
     "@babel/preset-env": "^7.15.6",
     "@rollup/plugin-babel": "^5.3.0",
@@ -66,5 +66,8 @@
       "node"
     ],
     "preset": "ts-jest"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.15.4"
   }
 }

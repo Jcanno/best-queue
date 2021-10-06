@@ -1,5 +1,5 @@
 module.exports = (api) => {
-  api.cache(true)
+  api.cache(false)
   return {
     babelrc: false,
     ignore: ['./node_modules'],
@@ -14,6 +14,6 @@ module.exports = (api) => {
         },
       ],
     ],
-    plugins: ['@babel/plugin-transform-typescript'],
+    plugins: ['@babel/plugin-transform-runtime', '@babel/plugin-transform-typescript'],
   }
 }
