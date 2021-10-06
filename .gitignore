@@ -1,8 +1,10 @@
 node_modules
-queue-request.js
 dist
 es
+lib
 test.js
 types
 coverage
 yarn-error.log
+.DS_Store
+.vscode
