@@ -59,7 +59,7 @@ const { createQueue } = require("best-queue");
 
 ## **API**
 
-| Attrubute/Method                 | Description                                                    | Type                                                 | Default                                                  |
+| Attribute/Method                 | Description                                                    | Type                                                 | Default                                                  |
 | :------------------------------- | -------------------------------------------------------------- | :--------------------------------------------------- | -------------------------------------------------------- |
 | createQueue                      | create a queue                                                 | (tasks: unkonwn[], options: Options) => Promise<any> |                                                          |
 | options                          | create a queue by options                                      | Object                                               | {<br>max: 1, <br>interval: 0,<br>recordError: false<br>} |
