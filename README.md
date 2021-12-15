@@ -33,7 +33,7 @@ But if one async task takes too much time because of network reason, the batch o
 
 That's `best-queue` do. See image below.
 
-![](https://hawksights.obs.cn-east-2.myhuaweicloud.com/ceshi/1593997290864.png)
+![](https://raw.githubusercontent.com/Jcanno/images/master/best-queue/queue-en.png)
 
 ## Install
 

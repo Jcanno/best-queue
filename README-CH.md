@@ -1,6 +1,6 @@
 # **Best-Queue**
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://www.npmjs.org/package/best-queue)
-[![downloads](https://img.shields.io/npm/dm/best-queue)](https://www.npmjs.org/package/best-queue)
+[![downloads](https://img.shields.io/npm/dt/best-queue)](https://www.npmjs.org/package/best-queue)
 [![size](https://img.shields.io/bundlephobia/min/best-queue/3.0.0)](https://www.npmjs.org/package/best-queue)
 [![issues](https://img.shields.io/github/issues-closed/Jcanno/best-queue)](https://www.npmjs.org/package/best-queue)
 [![npm](https://img.shields.io/npm/v/best-queue)](https://www.npmjs.org/package/best-queue)
@@ -33,7 +33,7 @@ Queue -> Promise.all([Promise.resolve(task), Promise.resolve(task)]) -> wait(int
 
 如下图:
 
-![](https://hawksights.obs.cn-east-2.myhuaweicloud.com/ceshi/1593997266220.png)
+![](https://raw.githubusercontent.com/Jcanno/images/master/best-queue/queue-cn.png)
 
 ## 安装
 
