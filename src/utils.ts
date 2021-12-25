@@ -8,3 +8,7 @@ export function wait(time: number): Promise<null> {
     }, time)
   })
 }
+
+export function isObject(target: any) {
+  return typeof target === 'object' && target !== null
+}

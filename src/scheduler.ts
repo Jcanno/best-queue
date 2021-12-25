@@ -1,8 +1,9 @@
 import { Subscriber } from './subscriber'
 import { Options, QueueResult } from './index'
-import { wait } from './utils/wait'
+import { wait } from './utils'
+import { Queue } from './queue'
 
-enum State {
+export enum State {
   'Init',
   'Running',
   'Pause',
@@ -10,55 +11,44 @@ enum State {
   'Error',
 }
 
-const InitErrorData = Symbol()
+const INITERRORDATA = Symbol()
 
 export class Scheduler<R = unknown> {
-  private count = 0
   private hasFinishedCount = 0
   private currentTaskIndex = 0
-  private state: State = State.Init
   private resolveFn: (v: QueueResult<R>) => void = () => undefined
   private rejectFn: (e: unknown) => void = () => undefined
-  private tasks: Record<number, unknown> = {}
   private subscriber: Subscriber
   private options: Options
   private finished = []
-  private errData = InitErrorData
+  private errData = INITERRORDATA
+  private taskQueue: Queue
 
-  constructor(tasks: unknown[], options: Options, subscriber: Subscriber) {
-    tasks.forEach((task) => this.enqueue(task))
+  constructor(taskQueue: Queue, options: Options, subscriber: Subscriber) {
+    this.taskQueue = taskQueue
     this.subscriber = subscriber
     this.options = options
-  }
-
-  private enqueue(task: unknown) {
-    this.tasks[this.count] = task
-    this.count++
-  }
-
-  private getState(): State {
-    return this.state
   }
 
   // Get paused queue to resume
   // Should start next of currentIndex
   resume() {
-    const isPaused = this.getState() === State.Pause
-    const resumeWithNoNextTask = this.currentTaskIndex === this.count - 1
+    const isPaused = this.taskQueue.getState() === State.Pause
+    const resumeWithNoNextTask = this.currentTaskIndex === this.taskQueue.count - 1
 
     if (isPaused) {
       if (resumeWithNoNextTask) {
-        if (this.errData !== InitErrorData) {
+        if (this.errData !== INITERRORDATA) {
           this.rejectFn(this.errData)
-          this.setState(State.Error)
+          this.taskQueue.setState(State.Error)
         } else {
-          this.setState(State.Finish)
+          this.taskQueue.setState(State.Finish)
           this.resolveFn(this.finished as QueueResult<R>)
         }
 
         return
       }
-      this.setState(State.Running)
+      this.taskQueue.setState(State.Running)
       this.currentTaskIndex++
       this.run()
     }
@@ -66,49 +56,46 @@ export class Scheduler<R = unknown> {
 
   // Pause the running queue
   pause() {
-    this.getState() === State.Running && this.setState(State.Pause)
-  }
-
-  // Change state of queue
-  private setState(nextState: State) {
-    this.state = nextState
+    this.taskQueue.getState() === State.Running && this.taskQueue.setState(State.Pause)
   }
 
   private run() {
-    const totalTasks = this.count
+    const totalTasks = this.taskQueue.count
     const restTasks = totalTasks - this.currentTaskIndex
     const concurrency = this.options.max >= restTasks ? restTasks : this.options.max
     const startIndex = this.currentTaskIndex
 
-    this.setState(State.Running)
+    this.taskQueue.setState(State.Running)
 
     for (let i = 0; i < concurrency; i++) {
       this.currentTaskIndex = startIndex + i
-      this.handleTask(this.tasks[this.currentTaskIndex], this.currentTaskIndex)
+      this.handleTask(this.taskQueue.tasks[this.currentTaskIndex], this.currentTaskIndex)
     }
   }
 
   private async next() {
     const hasNextTask = () =>
-      this.currentTaskIndex < this.count - 1 && this.getState() === State.Running
+      this.currentTaskIndex < this.taskQueue.count - 1 &&
+      this.taskQueue.getState() === State.Running
 
     if (hasNextTask()) {
       await wait(this.options.interval)
-      hasNextTask() && this.handleTask(this.tasks[++this.currentTaskIndex], this.currentTaskIndex)
+      hasNextTask() &&
+        this.handleTask(this.taskQueue.tasks[++this.currentTaskIndex], this.currentTaskIndex)
     }
   }
 
   private handleSingleTaskResult(result: unknown, resultIndex: number) {
     this.hasFinishedCount++
     this.finished[resultIndex] = result
-    const hasFinished = this.hasFinishedCount === this.count
+    const hasFinished = this.hasFinishedCount === this.taskQueue.count
 
-    if ([State.Pause, State.Init].includes(this.getState())) {
+    if ([State.Pause, State.Init].includes(this.taskQueue.getState())) {
       return
     }
 
     if (hasFinished) {
-      this.setState(State.Finish)
+      this.taskQueue.setState(State.Finish)
       this.resolveFn(this.finished as QueueResult<R>)
     } else {
       this.next()
@@ -128,11 +115,11 @@ export class Scheduler<R = unknown> {
       )
     } else {
       // if queue is paused, store error data, reject queue when resume
-      if (this.getState() === State.Pause) {
+      if (this.taskQueue.getState() === State.Pause) {
         this.errData = err as any
       } else {
         this.rejectFn(err)
-        this.setState(State.Error)
+        this.taskQueue.setState(State.Error)
       }
     }
   }
@@ -146,11 +133,11 @@ export class Scheduler<R = unknown> {
   }
 
   isEmptyQueue() {
-    return this.count === 0
+    return this.taskQueue.isEmptyQueue()
   }
 
   private getProgress(): number {
-    return this.hasFinishedCount / this.count
+    return this.hasFinishedCount / this.taskQueue.count
   }
 
   private handleTask(task: unknown, resultIndex: number) {

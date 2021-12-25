@@ -1,5 +1,7 @@
+import { Queue } from './queue'
 import { Scheduler } from './scheduler'
 import { Subscriber, Listener } from './subscriber'
+import { isObject } from './utils'
 
 export interface Options {
   max?: number
@@ -42,10 +44,14 @@ function createQueue<R = unknown>(tasks: unknown[], options: Options = {}): Enha
     throw new TypeError('tasks must be a array')
   }
 
-  let { max = 1, interval = 0, recordError = false } = typeof options === 'object' ? options : {}
+  let { max = 1, interval = 0, recordError = false } = isObject(options) ? options : {}
   const subscriber = new Subscriber()
+  const taskQueue = new Queue()
+  tasks.forEach((task) => {
+    taskQueue.enqueue(task)
+  })
   const scheduler = new Scheduler<QueueResult<R>>(
-    tasks,
+    taskQueue,
     {
       max: (max = max >> 0) < 1 ? 1 : max,
       interval: (interval = interval >> 0) < 0 ? 0 : interval,
