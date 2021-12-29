@@ -12,11 +12,7 @@ describe('one concurrence task running reject', () => {
 
 describe('one more concurrence tasks running reject', () => {
   test('one reject task', async () => {
-    const asyncTasks = [
-      genPromise(100),
-      genPromise(300),
-      genRejectPromise(200),
-    ] as (() => Promise<number>)[]
+    const asyncTasks = [genPromise(100), genPromise(300), genRejectPromise(200)]
     const queue = createQueue(asyncTasks, { max: 2 })
     try {
       await queue

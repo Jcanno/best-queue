@@ -1,6 +1,6 @@
 function genPromise(time) {
   return function () {
-    return new Promise((r) => {
+    return new Promise<number>((r) => {
       setTimeout(() => {
         r(time)
       }, time)
@@ -10,7 +10,7 @@ function genPromise(time) {
 
 function genRejectPromise(time) {
   return function () {
-    return new Promise((r, j) => {
+    return new Promise<number>((r, j) => {
       setTimeout(
         () => {
           j(time)
