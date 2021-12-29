@@ -39,7 +39,10 @@ interface EnhanceQueue<R> extends Promise<QueueResult<R>> {
   subscribe: (listener: Listener<QueueResult<R>>) => () => void
 }
 
-function createQueue<R = unknown>(tasks: unknown[], options: Options = {}): EnhanceQueue<R> {
+function createQueue<R extends any[] = unknown[]>(
+  tasks: R,
+  options: Options = {},
+): EnhanceQueue<R> {
   if (!Array.isArray(tasks)) {
     throw new TypeError('tasks must be a array')
   }
