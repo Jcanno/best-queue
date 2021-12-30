@@ -1,11 +1,21 @@
-# **Best-Queue**
+<h1 align="center"><img height="300" with="700" src="https://raw.githubusercontent.com/Jcanno/images/master/best-queue/logo.png" /><br> </h1>
+
+<h4 align="center">
+
 [![license](https://img.shields.io/badge/license-MIT-green.svg)](https://www.npmjs.org/package/best-queue)
 [![downloads](https://img.shields.io/npm/dt/best-queue)](https://www.npmjs.org/package/best-queue)
 [![size](https://img.shields.io/bundlephobia/min/best-queue/3.0.0)](https://www.npmjs.org/package/best-queue)
 [![issues](https://img.shields.io/github/issues-closed/Jcanno/best-queue)](https://www.npmjs.org/package/best-queue)
 [![npm](https://img.shields.io/npm/v/best-queue)](https://www.npmjs.org/package/best-queue)
 
+</h4>
+
+<h4 align="center">
+
 English|[简体中文](https://github.com/Jcanno/best-queue/blob/master/README-CH.md)
+
+</h4>
+
 
 ## Introduction
 
