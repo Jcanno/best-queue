@@ -132,10 +132,6 @@ export class Scheduler<R = unknown> {
     this.run()
   }
 
-  isEmptyQueue() {
-    return this.taskQueue.isEmptyQueue()
-  }
-
   private getProgress(): number {
     return this.hasFinishedCount / this.taskQueue.count
   }
