@@ -12,7 +12,7 @@
 
 <h4 align="center">
 
-English|[简体中文](https://github.com/Jcanno/best-queue/blob/master/README-CH.md)
+English|[简体中文](https://github.com/Jcanno/best-queue/blob/master/README.zh-CN.md)
 
 </h4>
 
