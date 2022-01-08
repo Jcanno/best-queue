@@ -1,6 +1,6 @@
 {
   "name": "best-queue",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "Queue in runtime base promise",
   "main": "lib/index.js",
   "module": "es/index.js",
