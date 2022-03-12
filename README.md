@@ -67,6 +67,13 @@ Require in Node:
 const { createQueue } = require("best-queue");
 ```
 
+Use Script source(Exposed `BQueue` as global var):
+
+```js
+<script src="https://cdn.jsdelivr.net/npm/best-queue"></script>
+<script src="https://unpkg.com/best-queue"></script>
+```
+
 ## **API**
 
 | Attribute/Method                 | Description                                                    | Type                                                 | Default                                                  |
@@ -89,7 +96,7 @@ import { createQueue } from "best-queue";
 function asyncTask() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve();
+      resolve(1);
     }, 1000);
   });
 }

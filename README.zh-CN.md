@@ -65,6 +65,13 @@ import { createQueue } from "best-queue";
 const { createQueue } = require("best-queue");
 ```
 
+通过JS脚本引入(暴露`BQueue`作为全局变量):
+
+```js
+<script src="https://cdn.jsdelivr.net/npm/best-queue"></script>
+<script src="https://unpkg.com/best-queue"></script>
+```
+
 ## **API**
 
 | 属性/方法                     | 描述                                                 | 类型                                                 | 默认值                                                                            |
@@ -88,7 +95,7 @@ import { createQueue } from "best-queue";
 function asyncTask() {
   return new Promise((resolve) => {
     setTimeout(() => {
-      resolve();
+      resolve(1);
     }, 1000);
   });
 }
