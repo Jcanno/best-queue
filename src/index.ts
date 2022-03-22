@@ -72,7 +72,7 @@ function createQueue<R extends any[] = unknown[]>(
   const queue = Object.assign(
     taskQueue.isEmptyQueue()
       ? Promise.resolve([])
-      : new Promise<any>((r, j) => scheduler.promiseExecuter(r, j)),
+      : new Promise<any>(scheduler.promiseExecuter.bind(scheduler)),
     enhanceQueueApi,
   )
 
