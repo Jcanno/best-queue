@@ -11,7 +11,7 @@ export enum State {
   'ERROR',
 }
 
-const INITERRORDATA = Symbol()
+const INIT_ERROR_DATA = Symbol()
 
 export class Scheduler<R = unknown> {
   private hasFinishedCount = 0
@@ -21,7 +21,7 @@ export class Scheduler<R = unknown> {
   private subscriber: Subscriber
   private options: Options
   private finished = []
-  private errData = INITERRORDATA
+  private errData = INIT_ERROR_DATA
   private taskQueue: Queue
 
   constructor(taskQueue: Queue, options: Options, subscriber: Subscriber) {
@@ -38,7 +38,7 @@ export class Scheduler<R = unknown> {
 
     if (isPaused) {
       if (resumeWithNoNextTask) {
-        if (this.errData !== INITERRORDATA) {
+        if (this.errData !== INIT_ERROR_DATA) {
           this.rejectFn(this.errData)
           this.taskQueue.setState(State.ERROR)
         } else {
